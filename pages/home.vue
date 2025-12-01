@@ -1,98 +1,170 @@
 <template>
-  <div class="home-container">
+  <div class="min-h-screen bg-gradient-to-br from-green-400 via-emerald-400 to-teal-500">
     <!-- 載入中狀態 -->
-    <div v-if="loading" class="loading-screen">
-      <div class="spinner"></div>
-      <p class="loading-text">載入中...</p>
+    <div v-if="loading" class="min-h-screen flex flex-col items-center justify-center">
+      <div class="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
+      <p class="mt-4 text-white text-lg font-medium">載入中...</p>
     </div>
 
-    <!-- 未登入狀態 - 重定向到登入頁 -->
-    <div v-else-if="!user" class="redirect-message">
-      <p>正在跳轉到登入頁面...</p>
+    <!-- 未登入狀態 -->
+    <div v-else-if="!user" class="min-h-screen flex items-center justify-center">
+      <UCard class="max-w-md">
+        <p class="text-center text-gray-600">正在跳轉到登入頁面...</p>
+      </UCard>
     </div>
 
-    <!-- 已登入狀態 - 首頁內容 -->
-    <div v-else class="home-content">
+    <!-- 已登入狀態 -->
+    <div v-else class="min-h-screen">
       <!-- 導航欄 -->
-      <nav class="navbar">
-        <div class="nav-container">
-          <div class="nav-brand">
-            <span class="nav-logo">🌿</span>
-            <span class="nav-title">心路基金會</span>
-          </div>
-          <div class="nav-user">
-            <div class="user-avatar">
-              {{ getUserInitial() }}
+      <div class="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between items-center h-16">
+            <!-- Logo 區 -->
+            <div class="flex items-center space-x-6">
+              <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
+                  <span class="text-2xl">🌿</span>
+                </div>
+                <span class="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">心路基金會</span>
+              </div>
+
+              <!-- 導航按鈕 -->
+              <div class="hidden md:flex items-center space-x-2">
+                <UButton 
+                  color="green" 
+                  variant="solid"
+                  size="sm"
+                  @click="navigateTo('/home')"
+                >
+                  <UIcon name="i-heroicons-home" class="mr-1" />
+                  首頁
+                </UButton>
+                <UButton 
+                  color="gray" 
+                  variant="soft"
+                  size="sm"
+                  @click="navigateTo('/isp-list')"
+                >
+                  <UIcon name="i-heroicons-document-text" class="mr-1" />
+                  ISP 表單
+                </UButton>
+              </div>
             </div>
-            <span class="user-name">{{ user.displayName || user.email }}</span>
-            <button @click="handleLogout" :disabled="isLoading" class="logout-btn">
-              {{ isLoading ? '登出中...' : '登出' }}
-            </button>
+
+            <!-- 使用者區 -->
+            <div class="flex items-center space-x-4">
+              <UAvatar 
+                :text="getUserInitial()" 
+                size="sm"
+                :ui="{ background: 'bg-gradient-to-br from-green-400 to-emerald-500' }"
+              />
+              <span class="text-gray-700 font-medium hidden sm:inline">{{ user.displayName || user.email }}</span>
+              <UButton 
+                color="red" 
+                variant="soft" 
+                @click="handleLogout"
+                :loading="isLoading"
+              >
+                {{ isLoading ? '登出中...' : '登出' }}
+              </UButton>
+            </div>
           </div>
         </div>
-      </nav>
+      </div>
 
-      <!-- 主要內容區 -->
-      <main class="main-content">
-        <div class="welcome-section">
-          <h1 class="welcome-title">歡迎回來！</h1>
-          <p class="welcome-subtitle">這是您的個人首頁</p>
+      <!-- 主要內容 -->
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- 歡迎區 -->
+        <div class="mb-8 text-center">
+          <h1 class="text-4xl font-bold text-white mb-2 drop-shadow-lg">歡迎回來！</h1>
+          <p class="text-white/90 text-lg">這是您的個人首頁</p>
         </div>
 
-        <!-- 使用者資訊卡片 -->
-        <div class="info-card">
-          <h2 class="card-title">個人資訊</h2>
-          <div class="info-grid">
-            <div class="info-item">
-              <label class="info-label">Email</label>
-              <div class="info-value">{{ user.email }}</div>
+        <!-- 個人資訊卡片 -->
+        <UCard 
+          :ui="{ 
+            base: 'backdrop-blur-md bg-white/95 border-2 border-white/60',
+            body: { padding: 'p-6 sm:p-8' }
+          }"
+        >
+          <template #header>
+            <div class="flex items-center space-x-2">
+              <UIcon name="i-heroicons-user-circle" class="w-6 h-6 text-green-600" />
+              <h2 class="text-2xl font-bold text-gray-800">個人資訊</h2>
             </div>
-            <div class="info-item">
-              <label class="info-label">顯示名稱</label>
-              <div class="name-edit-container">
-                <input 
+          </template>
+
+          <div class="space-y-6">
+            <!-- Email -->
+            <UFormGroup label="Email 帳號">
+              <UInput 
+                :value="user.email" 
+                readonly 
+                size="lg"
+                icon="i-heroicons-envelope"
+              />
+            </UFormGroup>
+
+            <!-- 顯示名稱 -->
+            <UFormGroup label="顯示名稱">
+              <div class="space-y-3">
+                <UInput 
                   v-if="isEditingName"
                   v-model="newDisplayName"
-                  type="text"
-                  class="name-input"
                   placeholder="請輸入顯示名稱"
+                  size="lg"
+                  icon="i-heroicons-user"
                   @keyup.enter="handleUpdateName"
                 />
-                <div v-else class="info-value">{{ user.displayName || '未設定' }}</div>
-                <div class="name-actions">
-                  <button 
+                <UInput 
+                  v-else
+                  :value="displayNameValue"
+                  readonly
+                  size="lg"
+                  icon="i-heroicons-user"
+                />
+                
+                <!-- 操作按鈕 -->
+                <div class="flex gap-2">
+                  <UButton 
                     v-if="!isEditingName"
+                    color="primary"
                     @click="startEditName"
-                    class="edit-btn"
                   >
-                    編輯
-                  </button>
+                    編輯名稱
+                  </UButton>
                   <template v-else>
-                    <button 
+                    <UButton 
+                      color="green"
                       @click="handleUpdateName"
-                      :disabled="isUpdatingName"
-                      class="save-btn"
+                      :loading="isUpdatingName"
                     >
                       {{ isUpdatingName ? '儲存中...' : '儲存' }}
-                    </button>
-                    <button 
+                    </UButton>
+                    <UButton 
+                      color="gray"
+                      variant="soft"
                       @click="cancelEditName"
                       :disabled="isUpdatingName"
-                      class="cancel-btn"
                     >
                       取消
-                    </button>
+                    </UButton>
                   </template>
                 </div>
+
+                <!-- 錯誤訊息 -->
+                <UAlert 
+                  v-if="updateError"
+                  color="red"
+                  variant="soft"
+                  :title="updateError"
+                  @close="updateError = null"
+                />
               </div>
-              <!-- 錯誤訊息 -->
-              <div v-if="updateError" class="update-error">
-                {{ updateError }}
-              </div>
-            </div>
+            </UFormGroup>
           </div>
-        </div>
-      </main>
+        </UCard>
+      </div>
     </div>
   </div>
 </template>
@@ -123,6 +195,17 @@ watch(user, (newUser) => {
   if (!loading.value && !newUser) {
     navigateTo('/', { replace: true })
   }
+})
+
+// 計算顯示名稱
+const displayNameValue = computed(() => {
+  if (!user.value) return '未設定'
+  if (user.value.displayName) return user.value.displayName
+  if (user.value.email) {
+    const emailName = user.value.email.split('@')[0]
+    return emailName || '未設定'
+  }
+  return '未設定'
 })
 
 const getUserInitial = () => {
@@ -168,264 +251,6 @@ const handleLogout = async () => {
 }
 </script>
 
-<style scoped>
-.home-container {
-  min-height: 100vh;
-  background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #fff8e1 100%);
-}
-
-/* 載入中 */
-.loading-screen {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-}
-
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid rgba(102, 187, 106, 0.2);
-  border-top-color: #66bb6a;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-text {
-  color: #66bb6a;
-  font-size: 1rem;
-}
-
-.redirect-message {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #66bb6a;
-  font-size: 1rem;
-}
-
-/* 導航欄 */
-.navbar {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(129, 199, 132, 0.2);
-  box-shadow: 0 2px 8px rgba(102, 187, 106, 0.1);
-}
-
-.nav-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.nav-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.nav-logo {
-  font-size: 2rem;
-}
-
-.nav-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #2e7d32;
-}
-
-.nav-user {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.user-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.user-name {
-  color: #388e3c;
-  font-weight: 500;
-}
-
-.logout-btn {
-  padding: 0.5rem 1.25rem;
-  background: linear-gradient(135deg, #e57373 0%, #ef5350 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.logout-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(229, 115, 115, 0.3);
-}
-
-.logout-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* 主要內容 */
-.main-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 3rem 2rem;
-}
-
-.welcome-section {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.welcome-title {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #2e7d32;
-  margin-bottom: 0.5rem;
-  letter-spacing: -1px;
-}
-
-.welcome-subtitle {
-  font-size: 1.25rem;
-  color: #66bb6a;
-}
-
-/* 資訊卡片 */
-.info-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 24px;
-  padding: 2.5rem;
-  box-shadow: 0 20px 60px rgba(102, 187, 106, 0.15);
-  border: 1px solid rgba(129, 199, 132, 0.2);
-}
-
-.card-title {
-  font-size: 1.75rem;
-  font-weight: 600;
-  color: #2e7d32;
-  margin-bottom: 2rem;
-}
-
-.info-grid {
-  display: grid;
-  gap: 1.5rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.info-label {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #388e3c;
-}
-
-.info-value {
-  padding: 1rem;
-  background: #fafffe;
-  border: 2px solid #c5e1a5;
-  border-radius: 12px;
-  color: #2e7d32;
-  font-size: 0.95rem;
-  word-break: break-all;
-}
-
-/* 名稱編輯 */
-.name-edit-container {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.name-input {
-  flex: 1;
-  padding: 1rem;
-  background: #fafffe;
-  border: 2px solid #66bb6a;
-  border-radius: 12px;
-  color: #2e7d32;
-  font-size: 0.95rem;
-  outline: none;
-  transition: border-color 0.3s;
-}
-
-.name-input:focus {
-  border-color: #388e3c;
-}
-
-.name-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.edit-btn, .save-btn, .cancel-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 8px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-  white-space: nowrap;
-}
-
-.edit-btn {
-  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
-  color: white;
-}
-
-.edit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 187, 106, 0.3);
-}
-
-.save-btn {
-  background: linear-gradient(135deg, #66bb6a 0%, #81c784 100%);
-  color: white;
-}
-
-.save-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 187, 106, 0.3);
-}
-
-.save-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.cancel-btn {
-  background: #e0e0e0;
-  color: #616161;
-}
-
 .cancel-btn:hover:not(:disabled) {
   background: #d0d0d0;
 }
@@ -463,12 +288,4 @@ const handleLogout = async () => {
     font-size: 2rem;
   }
 
-  .main-content {
-    padding: 2rem 1rem;
-  }
 
-  .info-card {
-    padding: 1.5rem;
-  }
-}
-</style>

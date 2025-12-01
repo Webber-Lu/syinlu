@@ -7,6 +7,11 @@ export default defineNuxtConfig({
   
   modules: ['@nuxt/ui'],
   
+  colorMode: {
+    preference: 'light',
+    fallback: 'light'
+  },
+  
   runtimeConfig: {
     public: {
       apiKey: process.env.NUXT_PUBLIC_FIREBASE_API_KEY,
