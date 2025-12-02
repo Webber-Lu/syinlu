@@ -429,19 +429,19 @@
                 <UButton 
                   color="gray" 
                   size="lg"
-                  @click="saveDraft(true)"
+                  @click="saveAndReturn"
                 >
                   <UIcon name="i-heroicons-document" class="mr-2" />
-                  儲存草稿
+                  儲存報告
                 </UButton>
                 <UButton 
                   color="green" 
                   size="lg"
-                  @click="submitForm"
-                  :loading="isSubmitting"
+                  @click="exportCurrentForm"
+                  :loading="isExporting"
                 >
-                  <UIcon name="i-heroicons-check-circle" class="mr-2" />
-                  {{ isSubmitting ? '提交中...' : '提交表單' }}
+                  <UIcon name="i-heroicons-arrow-down-tray" class="mr-2" />
+                  {{ isExporting ? '匯出中...' : '匯出' }}
                 </UButton>
               </div>
               <UButton 
@@ -470,14 +470,11 @@
           </template>
 
           <div class="text-center space-y-4">
-            <h3 class="text-2xl font-bold text-gray-800">提交成功！</h3>
-            <p class="text-gray-600">ISP 目標表單已成功提交並儲存</p>
-            <div class="flex justify-center gap-3 pt-4">
-              <UButton color="gray" variant="soft" @click="resetForm">
-                填寫新表單
-              </UButton>
+            <h3 class="text-2xl font-bold text-gray-800">匯出成功！</h3>
+            <p class="text-gray-600">ISP 目標表單已成功儲存並匯出</p>
+            <div class="flex justify-center pt-4">
               <UButton color="green" @click="viewReport">
-                查看報告
+                返回列表
               </UButton>
             </div>
           </div>
@@ -492,8 +489,10 @@
 import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, getDocs, getDoc, orderBy, limit, getFirestore } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 import { useAuth } from '~/composables/useAuth'
+import { useIspWordExport } from '~/composables/useIspWordExport'
 
 const { user } = useAuth()
+const { generateIspWord } = useIspWordExport()
 const route = useRoute()
 
 // URL 參數
@@ -556,7 +555,7 @@ watch(selectedDomains, (newDomains) => {
 }, { immediate: true, deep: true })
 
 // 提交狀態
-const isSubmitting = ref(false)
+const isExporting = ref(false)
 const showSuccessModal = ref(false)
 
 // 切換領域選擇
@@ -637,8 +636,8 @@ const saveDraft = async (showAlert = true) => {
   }
 }
 
-// 提交表單到 Firestore
-const submitForm = async () => {
+// 儲存報告並返回列表
+const saveAndReturn = async () => {
   if (!user.value) {
     alert('請先登入')
     return
@@ -667,7 +666,6 @@ const submitForm = async () => {
     }
   }
 
-  isSubmitting.value = true
   try {
     const db = getDb()
     
@@ -683,22 +681,93 @@ const submitForm = async () => {
     }
 
     if (draftId.value) {
-      // 如果是從草稿提交，更新現有文件
       const formRef = doc(db, 'isp_forms', draftId.value)
       await updateDoc(formRef, submissionData)
     } else {
-      // 建立新提交
       submissionData.createdAt = serverTimestamp()
       const docRef = await addDoc(collection(db, 'isp_forms'), submissionData)
       draftId.value = docRef.id
     }
 
+    alert('報告已儲存！')
+    navigateTo('/isp-list')
+  } catch (error) {
+    console.error('儲存失敗:', error)
+    alert('儲存失敗，請稍後再試')
+  }
+}
+
+// 匯出當前表單為 Word
+const exportCurrentForm = async () => {
+  if (!user.value) {
+    alert('請先登入')
+    return
+  }
+
+  // 驗證必填欄位
+  if (!formData.value.studentName || !formData.value.sessionNumber || 
+      !formData.value.startDate || !formData.value.endDate || 
+      !formData.value.planner) {
+    alert('請填寫所有必填欄位')
+    return
+  }
+
+  if (selectedDomains.value.length === 0) {
+    alert('請至少選擇一個發展領域')
+    return
+  }
+
+  // 驗證所有選中領域都已填寫目標
+  for (const domainId of selectedDomains.value) {
+    const domain = formData.value.domains[domainId]
+    if (!domain?.initial.longTerm || !domain?.initial.shortTerm ||
+        !domain?.confirmed.longTerm || !domain?.confirmed.shortTerm) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有目標`)
+      return
+    }
+  }
+
+  isExporting.value = true
+  try {
+    const db = getDb()
+    
+    // 先儲存到 Firestore
+    const submissionData: any = {
+      ...formData.value,
+      userId: user.value.uid,
+      userEmail: user.value.email,
+      userName: user.value.displayName || user.value.email,
+      status: 'submitted',
+      selectedDomains: selectedDomains.value,
+      submittedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    }
+
+    if (draftId.value) {
+      const formRef = doc(db, 'isp_forms', draftId.value)
+      await updateDoc(formRef, submissionData)
+    } else {
+      submissionData.createdAt = serverTimestamp()
+      const docRef = await addDoc(collection(db, 'isp_forms'), submissionData)
+      draftId.value = docRef.id
+    }
+
+    // 準備匯出資料（使用當前表單資料）
+    const exportData = {
+      ...formData.value,
+      selectedDomains: selectedDomains.value,
+      submittedAt: { toDate: () => new Date() }
+    }
+
+    // 匯出 Word
+    await generateIspWord(exportData)
+    
     showSuccessModal.value = true
   } catch (error) {
-    console.error('提交失敗:', error)
-    alert('提交失敗，請稍後再試')
+    console.error('匯出失敗:', error)
+    alert('匯出失敗，請稍後再試')
   } finally {
-    isSubmitting.value = false
+    isExporting.value = false
   }
 }
 
@@ -842,28 +911,9 @@ onBeforeUnmount(() => {
   }
 })
 
-// 重置表單
-const resetForm = () => {
-  formData.value = {
-    studentName: '',
-    sessionNumber: undefined,
-    startDate: '',
-    endDate: '',
-    planner: '',
-    domains: {}
-  }
-  selectedDomains.value = []
-  currentStep.value = 0
-  showSuccessModal.value = false
-  draftId.value = null
-  // 跳轉回列表頁
-  navigateTo('/isp-list')
-}
-
-// 查看報告
+// 返回列表
 const viewReport = () => {
   showSuccessModal.value = false
-  // 導航到列表頁面
   navigateTo('/isp-list')
 }
 </script>
