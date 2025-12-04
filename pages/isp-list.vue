@@ -136,16 +136,17 @@
                 <UIcon name="i-heroicons-pencil-square" class="mr-1" />
                 編輯
               </UButton>
-              
+
               <UButton 
                 v-if="form.status === 'submitted'"
-                color="gray" 
+                color="green" 
                 variant="soft"
                 size="sm"
-                @click="viewForm(form.id)"
+                @click="exportForm(form.id)"
+                :loading="exportingId === form.id"
               >
-                <UIcon name="i-heroicons-eye" class="mr-1" />
-                檢視
+                <UIcon name="i-heroicons-arrow-down-tray" class="mr-1" />
+                匯出
               </UButton>
 
               <UButton 
@@ -231,11 +232,13 @@
 </template>
 
 <script setup lang="ts">
-import { collection, query, where, getDocs, deleteDoc, doc, getFirestore, orderBy } from 'firebase/firestore'
+import { collection, query, where, getDocs, getDoc, deleteDoc, doc, getFirestore, orderBy } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 import { useAuth } from '~/composables/useAuth'
+import { useIspWordExport } from '~/composables/useIspWordExport'
 
 const { user } = useAuth()
+const { generateIspWord } = useIspWordExport()
 
 // 取得 Firestore 實例
 const getDb = () => {
@@ -262,6 +265,7 @@ const loading = ref(true)
 const showDeleteModal = ref(false)
 const deleteTarget = ref<any>(null)
 const isDeleting = ref(false)
+const exportingId = ref<string | null>(null)
 
 // 載入表單列表
 const loadForms = async () => {
@@ -326,11 +330,6 @@ const editForm = (formId: string) => {
   navigateTo(`/isp-form?edit=${formId}`)
 }
 
-// 檢視表單
-const viewForm = (formId: string) => {
-  navigateTo(`/isp-form?view=${formId}`)
-}
-
 // 確認刪除
 const confirmDelete = (form: any) => {
   deleteTarget.value = form
@@ -356,6 +355,34 @@ const deleteForm = async () => {
     alert('刪除失敗，請稍後再試')
   } finally {
     isDeleting.value = false
+  }
+}
+
+// 匯出表單為 Word 文件
+const exportForm = async (formId: string) => {
+  if (!user.value) {
+    alert('請先登入')
+    return
+  }
+
+  try {
+    exportingId.value = formId
+    const db = getDb()
+    const docRef = doc(db, 'isp_forms', formId)
+    const docSnap = await getDoc(docRef)
+    
+    if (docSnap.exists()) {
+      await generateIspWord(docSnap.data())
+      // 成功提示（可選）
+      // alert('Word 文件已下載！')
+    } else {
+      alert('找不到該表單')
+    }
+  } catch (error) {
+    console.error('匯出失敗:', error)
+    alert('匯出失敗，請稍後再試')
+  } finally {
+    exportingId.value = null
   }
 }
 
