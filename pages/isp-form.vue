@@ -31,15 +31,16 @@
                 @click="navigateTo('/isp-list')"
               >
                 <UIcon name="i-heroicons-document-text" class="mr-1" />
-                表單列表
+                ISP 表單
               </UButton>
               <UButton 
-                color="green" 
-                variant="solid"
+                color="gray" 
+                variant="soft"
                 size="sm"
+                @click="navigateTo('/evaluation-list')"
               >
-                <UIcon name="i-heroicons-pencil-square" class="mr-1" />
-                {{ isViewMode ? '檢視表單' : (editingFormId ? '編輯表單' : '新增表單') }}
+                <UIcon name="i-heroicons-chart-bar" class="mr-1" />
+                教育治療評鑑
               </UButton>
             </div>
           </div>
@@ -280,26 +281,92 @@
 
           <div v-if="formData.domains[domainId]" class="space-y-6">
             <!-- 長程目標 -->
-            <UFormGroup label="長程目標" required>
-              <UTextarea 
-                v-model="formData.domains[domainId].initial.longTerm"
-                placeholder="請描述長程目標（例如：能獨立完成基本生活自理動作）"
-                :rows="4"
-                size="lg"
-                :disabled="isViewMode"
-              />
-            </UFormGroup>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <label class="text-sm font-medium text-gray-700">長程目標 <span class="text-red-500">*</span></label>
+                <UButton 
+                  v-if="!isViewMode"
+                  color="green" 
+                  variant="soft"
+                  size="xs"
+                  @click="addGoal(domainId, 'initial', 'longTerms')"
+                >
+                  <UIcon name="i-heroicons-plus" class="mr-1" />
+                  新增長程目標
+                </UButton>
+              </div>
+              <div 
+                v-for="(goal, index) in formData.domains[domainId].initial.longTerms" 
+                :key="`initial-long-${index}`"
+                class="flex gap-2 items-start"
+              >
+                <div class="flex-shrink-0 w-8 h-10 flex items-center justify-center">
+                  <UBadge color="blue" variant="soft">{{ index + 1 }}</UBadge>
+                </div>
+                <UTextarea 
+                  v-model="formData.domains[domainId].initial.longTerms[index]"
+                  :placeholder="`請描述長程目標 ${index + 1}（例如：能獨立完成基本生活自理動作）`"
+                  :rows="3"
+                  size="lg"
+                  :disabled="isViewMode"
+                  class="flex-1"
+                />
+                <UButton 
+                  v-if="!isViewMode && formData.domains[domainId].initial.longTerms.length > 1"
+                  color="red" 
+                  variant="soft"
+                  size="sm"
+                  square
+                  @click="removeGoal(domainId, 'initial', 'longTerms', index)"
+                >
+                  <UIcon name="i-heroicons-trash" />
+                </UButton>
+              </div>
+            </div>
 
             <!-- 短程目標 -->
-            <UFormGroup label="短程目標" required>
-              <UTextarea 
-                v-model="formData.domains[domainId].initial.shortTerm"
-                placeholder="請描述短程目標（例如：在協助下能完成穿脫衣物）"
-                :rows="4"
-                size="lg"
-                :disabled="isViewMode"
-              />
-            </UFormGroup>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <label class="text-sm font-medium text-gray-700">短程目標 <span class="text-red-500">*</span></label>
+                <UButton 
+                  v-if="!isViewMode"
+                  color="green" 
+                  variant="soft"
+                  size="xs"
+                  @click="addGoal(domainId, 'initial', 'shortTerms')"
+                >
+                  <UIcon name="i-heroicons-plus" class="mr-1" />
+                  新增短程目標
+                </UButton>
+              </div>
+              <div 
+                v-for="(goal, index) in formData.domains[domainId].initial.shortTerms" 
+                :key="`initial-short-${index}`"
+                class="flex gap-2 items-start"
+              >
+                <div class="flex-shrink-0 w-8 h-10 flex items-center justify-center">
+                  <UBadge color="purple" variant="soft">{{ index + 1 }}</UBadge>
+                </div>
+                <UTextarea 
+                  v-model="formData.domains[domainId].initial.shortTerms[index]"
+                  :placeholder="`請描述短程目標 ${index + 1}（例如：在協助下能完成穿脫衣物）`"
+                  :rows="3"
+                  size="lg"
+                  :disabled="isViewMode"
+                  class="flex-1"
+                />
+                <UButton 
+                  v-if="!isViewMode && formData.domains[domainId].initial.shortTerms.length > 1"
+                  color="red" 
+                  variant="soft"
+                  size="sm"
+                  square
+                  @click="removeGoal(domainId, 'initial', 'shortTerms', index)"
+                >
+                  <UIcon name="i-heroicons-trash" />
+                </UButton>
+              </div>
+            </div>
           </div>
         </UCard>
 
@@ -330,6 +397,24 @@
 
       <!-- 步驟 4: ISP 會議後確認目標 -->
       <div v-if="currentStep === 3">
+        <!-- 一鍵複製所有初擬目標按鈕 -->
+        <UCard v-if="!isViewMode" class="mb-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-800 mb-1">確認階段</h3>
+              <p class="text-sm text-gray-600">您可以一鍵複製所有領域的初擬目標，或逐一編輯每個領域的確認目標</p>
+            </div>
+            <UButton 
+              color="green" 
+              size="lg"
+              @click="copyAllDomainsInitialGoals"
+            >
+              <UIcon name="i-heroicons-document-duplicate" class="mr-2" />
+              一鍵複製初擬目標
+            </UButton>
+          </div>
+        </UCard>
+
         <UCard 
           v-for="domainId in selectedDomains" 
           :key="domainId"
@@ -358,58 +443,114 @@
                 <span>初擬目標參考</span>
               </div>
             </template>
-            <div class="mt-2 space-y-2 text-sm">
-              <p><strong>長程：</strong>{{ formData.domains[domainId]?.initial.longTerm || '（未填寫）' }}</p>
-              <p><strong>短程：</strong>{{ formData.domains[domainId]?.initial.shortTerm || '（未填寫）' }}</p>
+            <div class="mt-2 space-y-3 text-sm">
+              <div>
+                <strong class="text-blue-700">長程目標：</strong>
+                <ol class="list-decimal list-inside mt-1 space-y-1">
+                  <li v-for="(goal, idx) in formData.domains[domainId]?.initial.longTerms || []" :key="idx">
+                    {{ goal || '（未填寫）' }}
+                  </li>
+                </ol>
+              </div>
+              <div>
+                <strong class="text-purple-700">短程目標：</strong>
+                <ol class="list-decimal list-inside mt-1 space-y-1">
+                  <li v-for="(goal, idx) in formData.domains[domainId]?.initial.shortTerms || []" :key="idx">
+                    {{ goal || '（未填寫）' }}
+                  </li>
+                </ol>
+              </div>
             </div>
           </UAlert>
 
           <div v-if="formData.domains[domainId]" class="space-y-6">
-            <!-- 確認後的長程目標 -->
-            <UFormGroup label="確認後的長程目標" required>
-              <UTextarea 
-                v-model="formData.domains[domainId].confirmed.longTerm"
-                placeholder="會議討論後的長程目標"
-                :rows="4"
-                size="lg"
-                :disabled="isViewMode"
-              />
-              <template #help>
+            <!-- 長程目標 -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <label class="text-sm font-medium text-gray-700">長程目標 <span class="text-red-500">*</span></label>
                 <UButton 
                   v-if="!isViewMode"
-                  color="gray" 
-                  variant="ghost" 
+                  color="green" 
+                  variant="soft"
                   size="xs"
-                  @click="copyInitialGoal(domainId, 'longTerm')"
+                  @click="addGoal(domainId, 'confirmed', 'longTerms')"
                 >
-                  <UIcon name="i-heroicons-document-duplicate" class="mr-1" />
-                  複製初擬目標
+                  <UIcon name="i-heroicons-plus" class="mr-1" />
+                  新增長程目標
                 </UButton>
-              </template>
-            </UFormGroup>
+              </div>
+              <div 
+                v-for="(goal, index) in formData.domains[domainId].confirmed.longTerms" 
+                :key="`confirmed-long-${index}`"
+                class="flex gap-2 items-start"
+              >
+                <div class="flex-shrink-0 w-8 h-10 flex items-center justify-center">
+                  <UBadge color="blue" variant="soft">{{ index + 1 }}</UBadge>
+                </div>
+                <UTextarea 
+                  v-model="formData.domains[domainId].confirmed.longTerms[index]"
+                  :placeholder="`請描述長程目標 ${index + 1}`"
+                  :rows="3"
+                  size="lg"
+                  :disabled="isViewMode"
+                  class="flex-1"
+                />
+                <UButton 
+                  v-if="!isViewMode && formData.domains[domainId].confirmed.longTerms.length > 1"
+                  color="red" 
+                  variant="soft"
+                  size="sm"
+                  square
+                  @click="removeGoal(domainId, 'confirmed', 'longTerms', index)"
+                >
+                  <UIcon name="i-heroicons-trash" />
+                </UButton>
+              </div>
+            </div>
 
-            <!-- 確認後的短程目標 -->
-            <UFormGroup label="確認後的短程目標" required>
-              <UTextarea 
-                v-model="formData.domains[domainId].confirmed.shortTerm"
-                placeholder="會議討論後的短程目標"
-                :rows="4"
-                size="lg"
-                :disabled="isViewMode"
-              />
-              <template #help>
+            <!-- 短程目標 -->
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <label class="text-sm font-medium text-gray-700">短程目標 <span class="text-red-500">*</span></label>
                 <UButton 
                   v-if="!isViewMode"
-                  color="gray" 
-                  variant="ghost" 
+                  color="green" 
+                  variant="soft"
                   size="xs"
-                  @click="copyInitialGoal(domainId, 'shortTerm')"
+                  @click="addGoal(domainId, 'confirmed', 'shortTerms')"
                 >
-                  <UIcon name="i-heroicons-document-duplicate" class="mr-1" />
-                  複製初擬目標
+                  <UIcon name="i-heroicons-plus" class="mr-1" />
+                  新增短程目標
                 </UButton>
-              </template>
-            </UFormGroup>
+              </div>
+              <div 
+                v-for="(goal, index) in formData.domains[domainId].confirmed.shortTerms" 
+                :key="`confirmed-short-${index}`"
+                class="flex gap-2 items-start"
+              >
+                <div class="flex-shrink-0 w-8 h-10 flex items-center justify-center">
+                  <UBadge color="purple" variant="soft">{{ index + 1 }}</UBadge>
+                </div>
+                <UTextarea 
+                  v-model="formData.domains[domainId].confirmed.shortTerms[index]"
+                  :placeholder="`請描述短程目標 ${index + 1}`"
+                  :rows="3"
+                  size="lg"
+                  :disabled="isViewMode"
+                  class="flex-1"
+                />
+                <UButton 
+                  v-if="!isViewMode && formData.domains[domainId].confirmed.shortTerms.length > 1"
+                  color="red" 
+                  variant="soft"
+                  size="sm"
+                  square
+                  @click="removeGoal(domainId, 'confirmed', 'shortTerms', index)"
+                >
+                  <UIcon name="i-heroicons-trash" />
+                </UButton>
+              </div>
+            </div>
           </div>
         </UCard>
 
@@ -533,8 +674,8 @@ const formData = ref({
   endDate: '',
   planner: '',
   domains: {} as Record<string, {
-    initial: { longTerm: string, shortTerm: string },
-    confirmed: { longTerm: string, shortTerm: string }
+    initial: { longTerms: string[], shortTerms: string[] },
+    confirmed: { longTerms: string[], shortTerms: string[] }
   }>
 })
 
@@ -546,8 +687,8 @@ watch(selectedDomains, (newDomains) => {
       formData.value.domains = {
         ...formData.value.domains,
         [domainId]: {
-          initial: { longTerm: '', shortTerm: '' },
-          confirmed: { longTerm: '', shortTerm: '' }
+          initial: { longTerms: [''], shortTerms: [''] },
+          confirmed: { longTerms: [''], shortTerms: [''] }
         }
       }
     }
@@ -577,12 +718,91 @@ const getDomainById = (id: string) => {
   return domain
 }
 
+// 轉換領域資料格式（舊格式轉新格式）
+const convertDomainData = (domains: any) => {
+  const converted: any = {}
+  if (!domains) return converted
+  
+  for (const [domainId, domainData] of Object.entries(domains)) {
+    const dd = domainData as any
+    converted[domainId] = {
+      initial: {
+        longTerms: Array.isArray(dd.initial?.longTerms) 
+          ? dd.initial.longTerms 
+          : (dd.initial?.longTerm ? [dd.initial.longTerm] : ['']),
+        shortTerms: Array.isArray(dd.initial?.shortTerms) 
+          ? dd.initial.shortTerms 
+          : (dd.initial?.shortTerm ? [dd.initial.shortTerm] : [''])
+      },
+      confirmed: {
+        longTerms: Array.isArray(dd.confirmed?.longTerms) 
+          ? dd.confirmed.longTerms 
+          : (dd.confirmed?.longTerm ? [dd.confirmed.longTerm] : ['']),
+        shortTerms: Array.isArray(dd.confirmed?.shortTerms) 
+          ? dd.confirmed.shortTerms 
+          : (dd.confirmed?.shortTerm ? [dd.confirmed.shortTerm] : [''])
+      }
+    }
+  }
+  return converted
+}
+
 // 複製初擬目標到確認目標
-const copyInitialGoal = (domainId: string, type: 'longTerm' | 'shortTerm') => {
+const copyInitialGoal = (domainId: string, type: 'longTerms' | 'shortTerms') => {
   if (formData.value.domains[domainId]) {
     formData.value.domains[domainId].confirmed[type] = 
-      formData.value.domains[domainId].initial[type]
+      [...formData.value.domains[domainId].initial[type]]
   }
+}
+
+// 複製所有初擬目標
+const copyAllInitialGoals = (domainId: string) => {
+  if (formData.value.domains[domainId]) {
+    formData.value.domains[domainId].confirmed.longTerms = 
+      [...formData.value.domains[domainId].initial.longTerms]
+    formData.value.domains[domainId].confirmed.shortTerms = 
+      [...formData.value.domains[domainId].initial.shortTerms]
+  }
+}
+
+// 複製所有領域的初擬目標
+const copyAllDomainsInitialGoals = () => {
+  selectedDomains.value.forEach(domainId => {
+    if (formData.value.domains[domainId]) {
+      formData.value.domains[domainId].confirmed.longTerms = 
+        [...formData.value.domains[domainId].initial.longTerms]
+      formData.value.domains[domainId].confirmed.shortTerms = 
+        [...formData.value.domains[domainId].initial.shortTerms]
+    }
+  })
+  alert('已複製所有領域的初擬目標！')
+}
+
+// 添加目標
+const addGoal = (domainId: string, stage: 'initial' | 'confirmed', type: 'longTerms' | 'shortTerms') => {
+  if (!formData.value.domains[domainId]) return
+  
+  // 確保領域資料結構存在
+  if (!formData.value.domains[domainId][stage]) {
+    formData.value.domains[domainId][stage] = { longTerms: [''], shortTerms: [''] }
+  }
+  
+  // 確保是陣列
+  if (!Array.isArray(formData.value.domains[domainId][stage][type])) {
+    formData.value.domains[domainId][stage][type] = [formData.value.domains[domainId][stage][type] || '']
+  }
+  
+  formData.value.domains[domainId][stage][type].push('')
+}
+
+// 刪除目標
+const removeGoal = (domainId: string, stage: 'initial' | 'confirmed', type: 'longTerms' | 'shortTerms', index: number) => {
+  if (!formData.value.domains[domainId]) return
+  if (!formData.value.domains[domainId][stage]) return
+  if (!Array.isArray(formData.value.domains[domainId][stage][type])) return
+  if (formData.value.domains[domainId][stage][type].length <= 1) return
+  
+  formData.value.domains[domainId][stage][type].splice(index, 1)
 }
 
 // 步驟控制
@@ -612,7 +832,6 @@ const saveDraft = async (showAlert = true) => {
       ...formData.value,
       userId: user.value.uid,
       userEmail: user.value.email,
-      status: 'draft',
       selectedDomains: selectedDomains.value,
       currentStep: currentStep.value,
       updatedAt: serverTimestamp()
@@ -659,9 +878,28 @@ const saveAndReturn = async () => {
   // 驗證所有選中領域都已填寫目標
   for (const domainId of selectedDomains.value) {
     const domain = formData.value.domains[domainId]
-    if (!domain?.initial.longTerm || !domain?.initial.shortTerm ||
-        !domain?.confirmed.longTerm || !domain?.confirmed.shortTerm) {
-      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有目標`)
+    
+    // 檢查初擬目標
+    if (!domain?.initial.longTerms || domain.initial.longTerms.length === 0 || 
+        domain.initial.longTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有初擬長程目標`)
+      return
+    }
+    if (!domain?.initial.shortTerms || domain.initial.shortTerms.length === 0 || 
+        domain.initial.shortTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有初擬短程目標`)
+      return
+    }
+    
+    // 檢查確認目標
+    if (!domain?.confirmed.longTerms || domain.confirmed.longTerms.length === 0 || 
+        domain.confirmed.longTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有確認長程目標`)
+      return
+    }
+    if (!domain?.confirmed.shortTerms || domain.confirmed.shortTerms.length === 0 || 
+        domain.confirmed.shortTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有確認短程目標`)
       return
     }
   }
@@ -674,7 +912,6 @@ const saveAndReturn = async () => {
       userId: user.value.uid,
       userEmail: user.value.email,
       userName: user.value.displayName || user.value.email,
-      status: 'submitted',
       selectedDomains: selectedDomains.value,
       submittedAt: serverTimestamp(),
       updatedAt: serverTimestamp()
@@ -720,9 +957,28 @@ const exportCurrentForm = async () => {
   // 驗證所有選中領域都已填寫目標
   for (const domainId of selectedDomains.value) {
     const domain = formData.value.domains[domainId]
-    if (!domain?.initial.longTerm || !domain?.initial.shortTerm ||
-        !domain?.confirmed.longTerm || !domain?.confirmed.shortTerm) {
-      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有目標`)
+
+    // 檢查初擬目標
+    if (!domain?.initial.longTerms || domain.initial.longTerms.length === 0 ||
+        domain.initial.longTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有初擬長程目標`)
+      return
+    }
+    if (!domain?.initial.shortTerms || domain.initial.shortTerms.length === 0 ||
+        domain.initial.shortTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有初擬短程目標`)
+      return
+    }
+
+    // 檢查確認目標
+    if (!domain?.confirmed.longTerms || domain.confirmed.longTerms.length === 0 ||
+        domain.confirmed.longTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有確認長程目標`)
+      return
+    }
+    if (!domain?.confirmed.shortTerms || domain.confirmed.shortTerms.length === 0 ||
+        domain.confirmed.shortTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有確認短程目標`)
       return
     }
   }
@@ -737,7 +993,6 @@ const exportCurrentForm = async () => {
       userId: user.value.uid,
       userEmail: user.value.email,
       userName: user.value.displayName || user.value.email,
-      status: 'submitted',
       selectedDomains: selectedDomains.value,
       submittedAt: serverTimestamp(),
       updatedAt: serverTimestamp()
@@ -794,7 +1049,7 @@ const loadForm = async (formId?: string) => {
           startDate: data.startDate || '',
           endDate: data.endDate || '',
           planner: data.planner || '',
-          domains: data.domains || {}
+          domains: convertDomainData(data.domains)
         }
         selectedDomains.value = data.selectedDomains || []
         currentStep.value = data.currentStep || 0
@@ -811,17 +1066,16 @@ const loadForm = async (formId?: string) => {
       
       const querySnapshot = await getDocs(q)
       
-      // 在客戶端過濾和排序
-      const drafts = querySnapshot.docs
-        .filter(doc => doc.data().status === 'draft')
+      // 在客戶端排序
+      const allForms = querySnapshot.docs
         .sort((a, b) => {
           const aTime = a.data().updatedAt?.toMillis() || 0
           const bTime = b.data().updatedAt?.toMillis() || 0
           return bTime - aTime
         })
       
-      if (drafts.length > 0) {
-        const draftDoc = drafts[0]
+      if (allForms.length > 0) {
+        const draftDoc = allForms[0]
         if (!draftDoc) return
         
         const draftData = draftDoc.data()
@@ -833,7 +1087,7 @@ const loadForm = async (formId?: string) => {
           startDate: draftData.startDate || '',
           endDate: draftData.endDate || '',
           planner: draftData.planner || '',
-          domains: draftData.domains || {}
+          domains: convertDomainData(draftData.domains)
         }
         selectedDomains.value = draftData.selectedDomains || []
         currentStep.value = draftData.currentStep || 0

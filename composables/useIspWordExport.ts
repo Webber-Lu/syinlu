@@ -45,31 +45,40 @@ export const useIspWordExport = () => {
 
       const domainsArray = (ispData.selectedDomains || []).map((domainId: string) => {
         const domainData = ispData.domains[domainId]
-        
+
         console.log(`\n📋 處理領域: ${domainId}`)
         console.log('  - 領域資料:', domainData)
-        console.log('  - 初擬長期目標:', domainData?.initial?.longTerm)
-        console.log('  - 初擬短期目標:', domainData?.initial?.shortTerm)
-        console.log('  - 確認長期目標:', domainData?.confirmed?.longTerm)
-        console.log('  - 確認短期目標:', domainData?.confirmed?.shortTerm)
-        
+        console.log('  - 初擬長期目標:', domainData?.initial?.longTerms)
+        console.log('  - 初擬短期目標:', domainData?.initial?.shortTerms)
+        console.log('  - 確認長期目標:', domainData?.confirmed?.longTerms)
+        console.log('  - 確認短期目標:', domainData?.confirmed?.shortTerms)
+
+        // 將陣列格式化為編號列表字串
+        const formatGoals = (goals: string[] | undefined): string => {
+          if (!goals || goals.length === 0) return '(未填寫)'
+          return goals
+            .filter(g => g && g.trim())
+            .map((goal, index) => `${index + 1}. ${goal}`)
+            .join('\n') || '(未填寫)'
+        }
+
         return {
           domainId: domainId,
           domainName: getDomainName(domainId),
           // 巢狀結構（給 {{initial.longTerm}} 用）
           initial: {
-            longTerm: domainData?.initial?.longTerm || '(未填寫)',
-            shortTerm: domainData?.initial?.shortTerm || '(未填寫)'
+            longTerm: formatGoals(domainData?.initial?.longTerms),
+            shortTerm: formatGoals(domainData?.initial?.shortTerms)
           },
           confirmed: {
-            longTerm: domainData?.confirmed?.longTerm || '(未填寫)',
-            shortTerm: domainData?.confirmed?.shortTerm || '(未填寫)'
+            longTerm: formatGoals(domainData?.confirmed?.longTerms),
+            shortTerm: formatGoals(domainData?.confirmed?.shortTerms)
           },
           // 扁平化結構（給 {{initialLongTerm}} 用，如果 Word 不支援點號）
-          initialLongTerm: domainData?.initial?.longTerm || '(未填寫)',
-          initialShortTerm: domainData?.initial?.shortTerm || '(未填寫)',
-          confirmedLongTerm: domainData?.confirmed?.longTerm || '(未填寫)',
-          confirmedShortTerm: domainData?.confirmed?.shortTerm || '(未填寫)'
+          initialLongTerm: formatGoals(domainData?.initial?.longTerms),
+          initialShortTerm: formatGoals(domainData?.initial?.shortTerms),
+          confirmedLongTerm: formatGoals(domainData?.confirmed?.longTerms),
+          confirmedShortTerm: formatGoals(domainData?.confirmed?.shortTerms)
         }
       })
 
@@ -108,14 +117,12 @@ export const useIspWordExport = () => {
           start: '{{',
           end: '}}'
         }
-      })
+      }) as any
 
-      // 設置資料
-      doc.setData(data)
-
-      // 渲染文件
+      // 設置資料並渲染文件
       try {
-        doc.render()
+        await doc.renderAsync(data)
+        console.log('文件渲染完成')
       } catch (error: any) {
         console.error('模板渲染錯誤:', error)
         if (error.properties && error.properties.errors instanceof Array) {
