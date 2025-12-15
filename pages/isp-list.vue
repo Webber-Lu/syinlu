@@ -365,7 +365,23 @@ const exportForm = async (formId: string) => {
     const docSnap = await getDoc(docRef)
     
     if (docSnap.exists()) {
-      await generateIspWord(docSnap.data())
+      // 將 Firebase 資料轉換為純 JavaScript 物件
+      const rawData = docSnap.data()
+      const cleanData = JSON.parse(JSON.stringify(rawData, (key, value) => {
+        // 處理 Timestamp 物件
+        if (value && typeof value === 'object' && value.toDate) {
+          return value
+        }
+        return value
+      }))
+      
+      // 保留原始的 Timestamp 物件供日期格式化使用
+      if (rawData.submittedAt) {
+        cleanData.submittedAt = rawData.submittedAt
+      }
+      
+      console.log('📤 匯出資料:', cleanData)
+      await generateIspWord(cleanData)
       // 成功提示（可選）
       // alert('Word 文件已下載！')
     } else {
