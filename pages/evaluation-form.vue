@@ -684,8 +684,7 @@ const loadIspForms = async () => {
     const db = getDb()
     const q = query(
       collection(db, 'isp_forms'),
-      where('userId', '==', user.value.uid),
-      where('status', '==', 'submitted')
+      where('userId', '==', user.value.uid)
     )
     
     const querySnapshot = await getDocs(q)
@@ -826,7 +825,6 @@ const saveDraft = async () => {
     const formDataToSave: any = {
       userId: user.value?.uid,
       ...formData.value,
-      status: 'draft',
       updatedAt: serverTimestamp()
     }
 
@@ -894,7 +892,6 @@ const submitForm = async () => {
     const formDataToSave: any = {
       userId: user.value?.uid,
       ...formData.value,
-      status: 'completed',
       updatedAt: serverTimestamp()
     }
 

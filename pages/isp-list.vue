@@ -86,12 +86,6 @@
             <div class="flex-1">
               <div class="flex items-center space-x-3 mb-2">
                 <h3 class="text-xl font-bold text-gray-800">{{ form.studentName }}</h3>
-                <UBadge 
-                  :color="form.status === 'submitted' ? 'green' : 'yellow'" 
-                  variant="soft"
-                >
-                  {{ form.status === 'submitted' ? '已提交' : '草稿' }}
-                </UBadge>
               </div>
               
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
@@ -138,7 +132,6 @@
               </UButton>
 
               <UButton 
-                v-if="form.status === 'submitted'"
                 color="green" 
                 variant="soft"
                 size="sm"

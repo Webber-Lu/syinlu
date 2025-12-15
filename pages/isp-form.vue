@@ -832,7 +832,6 @@ const saveDraft = async (showAlert = true) => {
       ...formData.value,
       userId: user.value.uid,
       userEmail: user.value.email,
-      status: 'draft',
       selectedDomains: selectedDomains.value,
       currentStep: currentStep.value,
       updatedAt: serverTimestamp()
@@ -913,7 +912,6 @@ const saveAndReturn = async () => {
       userId: user.value.uid,
       userEmail: user.value.email,
       userName: user.value.displayName || user.value.email,
-      status: 'submitted',
       selectedDomains: selectedDomains.value,
       submittedAt: serverTimestamp(),
       updatedAt: serverTimestamp()
@@ -959,9 +957,28 @@ const exportCurrentForm = async () => {
   // 驗證所有選中領域都已填寫目標
   for (const domainId of selectedDomains.value) {
     const domain = formData.value.domains[domainId]
-    if (!domain?.initial.longTerm || !domain?.initial.shortTerm ||
-        !domain?.confirmed.longTerm || !domain?.confirmed.shortTerm) {
-      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有目標`)
+
+    // 檢查初擬目標
+    if (!domain?.initial.longTerms || domain.initial.longTerms.length === 0 ||
+        domain.initial.longTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有初擬長程目標`)
+      return
+    }
+    if (!domain?.initial.shortTerms || domain.initial.shortTerms.length === 0 ||
+        domain.initial.shortTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有初擬短程目標`)
+      return
+    }
+
+    // 檢查確認目標
+    if (!domain?.confirmed.longTerms || domain.confirmed.longTerms.length === 0 ||
+        domain.confirmed.longTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有確認長程目標`)
+      return
+    }
+    if (!domain?.confirmed.shortTerms || domain.confirmed.shortTerms.length === 0 ||
+        domain.confirmed.shortTerms.some(g => !g.trim())) {
+      alert(`請完整填寫 ${getDomainById(domainId).name} 的所有確認短程目標`)
       return
     }
   }
@@ -976,7 +993,6 @@ const exportCurrentForm = async () => {
       userId: user.value.uid,
       userEmail: user.value.email,
       userName: user.value.displayName || user.value.email,
-      status: 'submitted',
       selectedDomains: selectedDomains.value,
       submittedAt: serverTimestamp(),
       updatedAt: serverTimestamp()
@@ -1050,17 +1066,16 @@ const loadForm = async (formId?: string) => {
       
       const querySnapshot = await getDocs(q)
       
-      // 在客戶端過濾和排序
-      const drafts = querySnapshot.docs
-        .filter(doc => doc.data().status === 'draft')
+      // 在客戶端排序
+      const allForms = querySnapshot.docs
         .sort((a, b) => {
           const aTime = a.data().updatedAt?.toMillis() || 0
           const bTime = b.data().updatedAt?.toMillis() || 0
           return bTime - aTime
         })
       
-      if (drafts.length > 0) {
-        const draftDoc = drafts[0]
+      if (allForms.length > 0) {
+        const draftDoc = allForms[0]
         if (!draftDoc) return
         
         const draftData = draftDoc.data()
