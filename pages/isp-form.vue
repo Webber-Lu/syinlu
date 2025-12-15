@@ -1,10 +1,8 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
-    <!-- 導航欄 -->
     <div class="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
-          <!-- Logo 區 -->
           <div class="flex items-center space-x-6">
             <div class="flex items-center space-x-3">
               <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
@@ -13,12 +11,11 @@
               <span class="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">心路基金會</span>
             </div>
 
-            <!-- 導航按鈕 -->
             <div class="hidden md:flex items-center space-x-2">
               <UButton 
                 color="gray" 
-                variant="soft"
-                size="sm"
+                variant="soft" 
+                size="sm" 
                 @click="navigateTo('/home')"
               >
                 <UIcon name="i-heroicons-home" class="mr-1" />
@@ -26,8 +23,8 @@
               </UButton>
               <UButton 
                 color="gray" 
-                variant="soft"
-                size="sm"
+                variant="soft" 
+                size="sm" 
                 @click="navigateTo('/isp-list')"
               >
                 <UIcon name="i-heroicons-document-text" class="mr-1" />
@@ -35,7 +32,7 @@
               </UButton>
               <UButton 
                 color="green" 
-                variant="solid"
+                variant="solid" 
                 size="sm"
               >
                 <UIcon name="i-heroicons-pencil-square" class="mr-1" />
@@ -49,7 +46,6 @@
 
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
-      <!-- 表單標題 -->
       <div class="mb-8 text-center">
         <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full mb-4 shadow-lg">
           <UIcon name="i-heroicons-document-text" class="w-8 h-8 text-white" />
@@ -58,7 +54,6 @@
         <p class="text-gray-600">私立心路桃園發展中心</p>
       </div>
 
-      <!-- 進度指示器 -->
       <div class="mb-8">
         <UCard>
           <div class="flex justify-between items-center">
@@ -86,7 +81,6 @@
         </UCard>
       </div>
 
-      <!-- 步驟 1: 基本資訊 -->
       <UCard v-if="currentStep === 0" class="mb-6">
         <template #header>
           <div class="flex items-center space-x-2">
@@ -177,7 +171,6 @@
         </template>
       </UCard>
 
-      <!-- 步驟 2: 選擇發展領域 -->
       <UCard v-if="currentStep === 1" class="mb-6">
         <template #header>
           <div class="flex items-center space-x-2">
@@ -256,7 +249,6 @@
         </template>
       </UCard>
 
-      <!-- 步驟 3: 填寫專業團隊初擬目標 -->
       <div v-if="currentStep === 2">
         <UCard 
           v-for="domainId in selectedDomains" 
@@ -279,7 +271,6 @@
           </template>
 
           <div v-if="formData.domains[domainId]" class="space-y-6">
-            <!-- 長程目標 -->
             <UFormGroup label="長程目標" required>
               <UTextarea 
                 v-model="formData.domains[domainId].initial.longTerm"
@@ -290,7 +281,6 @@
               />
             </UFormGroup>
 
-            <!-- 短程目標 -->
             <UFormGroup label="短程目標" required>
               <UTextarea 
                 v-model="formData.domains[domainId].initial.shortTerm"
@@ -328,8 +318,27 @@
         </UCard>
       </div>
 
-      <!-- 步驟 4: ISP 會議後確認目標 -->
       <div v-if="currentStep === 3">
+        
+        <div class="mb-6 flex justify-end" v-if="!isViewMode">
+          <UCard class="w-full bg-blue-50 border border-blue-100">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <UIcon name="i-heroicons-information-circle" class="text-blue-500 w-5 h-5" />
+                <span class="text-blue-800 font-medium text-sm">若會議結果與初擬目標一致，可使用一鍵複製功能。</span>
+              </div>
+              <UButton
+                color="blue"
+                variant="solid"
+                icon="i-heroicons-document-duplicate"
+                @click="copyAllInitialGoals"
+              >
+                一鍵複製所有初擬目標
+              </UButton>
+            </div>
+          </UCard>
+        </div>
+
         <UCard 
           v-for="domainId in selectedDomains" 
           :key="domainId"
@@ -350,7 +359,6 @@
             </div>
           </template>
 
-          <!-- 顯示初擬目標供參考 -->
           <UAlert color="blue" variant="soft" class="mb-6">
             <template #title>
               <div class="flex items-center space-x-2">
@@ -365,7 +373,6 @@
           </UAlert>
 
           <div v-if="formData.domains[domainId]" class="space-y-6">
-            <!-- 確認後的長程目標 -->
             <UFormGroup label="確認後的長程目標" required>
               <UTextarea 
                 v-model="formData.domains[domainId].confirmed.longTerm"
@@ -388,7 +395,6 @@
               </template>
             </UFormGroup>
 
-            <!-- 確認後的短程目標 -->
             <UFormGroup label="確認後的短程目標" required>
               <UTextarea 
                 v-model="formData.domains[domainId].confirmed.shortTerm"
@@ -458,7 +464,6 @@
         </UCard>
       </div>
 
-      <!-- 提交成功模態框 -->
       <UModal v-model="showSuccessModal">
         <UCard>
           <template #header>
@@ -489,7 +494,7 @@
 </template>
 
 <script setup lang="ts">
-import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, getDocs, getDoc, orderBy, limit, getFirestore } from 'firebase/firestore'
+import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, getDocs, getDoc, getFirestore } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 import { useAuth } from '~/composables/useAuth'
 
@@ -543,7 +548,6 @@ const formData = ref({
 watch(selectedDomains, (newDomains) => {
   newDomains.forEach(domainId => {
     if (!formData.value.domains[domainId]) {
-      // 使用 Object.assign 確保響應式更新
       formData.value.domains = {
         ...formData.value.domains,
         [domainId]: {
@@ -578,13 +582,32 @@ const getDomainById = (id: string) => {
   return domain
 }
 
-// 複製初擬目標到確認目標
+// 複製初擬目標到確認目標 (單一欄位)
 const copyInitialGoal = (domainId: string, type: 'longTerm' | 'shortTerm') => {
   if (formData.value.domains[domainId]) {
     formData.value.domains[domainId].confirmed[type] = 
       formData.value.domains[domainId].initial[type]
   }
 }
+
+// === 新增：一鍵複製所有初擬目標 ===
+const copyAllInitialGoals = () => {
+  if (isViewMode.value) return
+  
+  // 防呆提示
+  const confirmed = confirm('確定要將「所有領域」的初擬目標全部複製到確認欄位嗎？\n注意：這將會覆蓋目前已填寫的確認目標內容。')
+  if (!confirmed) return
+
+  // 執行複製
+  selectedDomains.value.forEach(domainId => {
+    const domainData = formData.value.domains[domainId]
+    if (domainData) {
+      domainData.confirmed.longTerm = domainData.initial.longTerm
+      domainData.confirmed.shortTerm = domainData.initial.shortTerm
+    }
+  })
+}
+// ===================================
 
 // 步驟控制
 const nextStep = () => {
@@ -620,12 +643,10 @@ const saveDraft = async (showAlert = true) => {
     }
 
     if (draftId.value) {
-      // 更新現有草稿
       const draftRef = doc(db, 'isp_forms', draftId.value)
       await updateDoc(draftRef, draftData)
       if (showAlert) alert('草稿已更新！')
     } else {
-      // 建立新草稿
       draftData.createdAt = serverTimestamp()
       const docRef = await addDoc(collection(db, 'isp_forms'), draftData)
       draftId.value = docRef.id
@@ -644,7 +665,6 @@ const submitForm = async () => {
     return
   }
 
-  // 驗證必填欄位
   if (!formData.value.studentName || !formData.value.sessionNumber || 
       !formData.value.startDate || !formData.value.endDate || 
       !formData.value.planner) {
@@ -657,7 +677,6 @@ const submitForm = async () => {
     return
   }
 
-  // 驗證所有選中領域都已填寫目標
   for (const domainId of selectedDomains.value) {
     const domain = formData.value.domains[domainId]
     if (!domain?.initial.longTerm || !domain?.initial.shortTerm ||
@@ -683,11 +702,9 @@ const submitForm = async () => {
     }
 
     if (draftId.value) {
-      // 如果是從草稿提交，更新現有文件
       const formRef = doc(db, 'isp_forms', draftId.value)
       await updateDoc(formRef, submissionData)
     } else {
-      // 建立新提交
       submissionData.createdAt = serverTimestamp()
       const docRef = await addDoc(collection(db, 'isp_forms'), submissionData)
       draftId.value = docRef.id
@@ -709,15 +726,12 @@ const loadForm = async (formId?: string) => {
   try {
     const db = getDb()
     
-    // 如果指定了表單 ID，直接載入該表單
     if (formId) {
       const docRef = doc(db, 'isp_forms', formId)
       const docSnap = await getDoc(docRef)
       
       if (docSnap.exists()) {
         const data = docSnap.data()
-        
-        // 載入表單資料
         draftId.value = docSnap.id
         formData.value = {
           studentName: data.studentName || '',
@@ -733,7 +747,6 @@ const loadForm = async (formId?: string) => {
       return
     }
     
-    // 否則載入最新草稿（僅在新增模式）
     if (!isNewForm.value) {
       const q = query(
         collection(db, 'isp_forms'),
@@ -742,7 +755,6 @@ const loadForm = async (formId?: string) => {
       
       const querySnapshot = await getDocs(q)
       
-      // 在客戶端過濾和排序
       const drafts = querySnapshot.docs
         .filter(doc => doc.data().status === 'draft')
         .sort((a, b) => {
@@ -753,10 +765,7 @@ const loadForm = async (formId?: string) => {
       
       if (drafts.length > 0) {
         const draftDoc = drafts[0]
-        if (!draftDoc) return
-        
         const draftData = draftDoc.data()
-        
         draftId.value = draftDoc.id
         formData.value = {
           studentName: draftData.studentName || '',
@@ -775,20 +784,18 @@ const loadForm = async (formId?: string) => {
   }
 }
 
-// 自動儲存定時器
+// 自動儲存
 let autoSaveTimer: NodeJS.Timeout | null = null
 
-// 啟動自動儲存（每30秒）
 const startAutoSave = () => {
   if (autoSaveTimer) clearInterval(autoSaveTimer)
   autoSaveTimer = setInterval(() => {
     if (user.value && (formData.value.studentName || selectedDomains.value.length > 0)) {
-      saveDraft(false) // 靜默儲存，不顯示提示
+      saveDraft(false)
     }
-  }, 30000) // 30秒
+  }, 30000)
 }
 
-// 停止自動儲存
 const stopAutoSave = () => {
   if (autoSaveTimer) {
     clearInterval(autoSaveTimer)
@@ -796,45 +803,30 @@ const stopAutoSave = () => {
   }
 }
 
-// 監聽用戶狀態變化
 watch(user, async (newUser) => {
   if (newUser) {
-    // 編輯模式：載入指定表單
     if (editingFormId.value) {
       await loadForm(editingFormId.value)
     } else if (!isNewForm.value) {
-      // 非新增模式：載入最新草稿
       await loadForm()
     }
-    
-    // 檢視模式不啟動自動儲存
-    if (!isViewMode.value) {
-      startAutoSave()
-    }
+    if (!isViewMode.value) startAutoSave()
   } else {
     stopAutoSave()
   }
 }, { immediate: true })
 
-// 頁面載入時載入表單
 onMounted(async () => {
   if (user.value) {
-    // 編輯模式：載入指定表單
     if (editingFormId.value) {
       await loadForm(editingFormId.value)
     } else if (!isNewForm.value) {
-      // 非新增模式：載入最新草稿
       await loadForm()
     }
-    
-    // 檢視模式不啟動自動儲存
-    if (!isViewMode.value) {
-      startAutoSave()
-    }
+    if (!isViewMode.value) startAutoSave()
   }
 })
 
-// 離開頁面前自動儲存
 onBeforeUnmount(() => {
   stopAutoSave()
   if (user.value && (formData.value.studentName || selectedDomains.value.length > 0)) {
@@ -842,7 +834,6 @@ onBeforeUnmount(() => {
   }
 })
 
-// 重置表單
 const resetForm = () => {
   formData.value = {
     studentName: '',
@@ -856,14 +847,11 @@ const resetForm = () => {
   currentStep.value = 0
   showSuccessModal.value = false
   draftId.value = null
-  // 跳轉回列表頁
   navigateTo('/isp-list')
 }
 
-// 查看報告
 const viewReport = () => {
   showSuccessModal.value = false
-  // 導航到列表頁面
   navigateTo('/isp-list')
 }
 </script>
