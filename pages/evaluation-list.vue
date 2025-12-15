@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50">
+  <div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
     <!-- 導航欄 -->
     <div class="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,26 +17,26 @@
             <div class="hidden md:flex items-center space-x-2">
               <UButton 
                 color="gray" 
-                variant="soft" 
-                size="sm" 
+                variant="soft"
+                size="sm"
                 @click="navigateTo('/home')"
               >
                 <UIcon name="i-heroicons-home" class="mr-1" />
                 首頁
               </UButton>
               <UButton 
-                color="green" 
-                variant="solid" 
-                size="sm" 
+                color="gray" 
+                variant="soft"
+                size="sm"
+                @click="navigateTo('/isp-list')"
               >
                 <UIcon name="i-heroicons-document-text" class="mr-1" />
                 ISP 表單
               </UButton>
               <UButton 
-                color="gray" 
-                variant="soft"
+                color="blue" 
+                variant="solid"
                 size="sm"
-                @click="navigateTo('/evaluation-list')"
               >
                 <UIcon name="i-heroicons-chart-bar" class="mr-1" />
                 教育治療評鑑
@@ -49,167 +49,128 @@
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
-      <!-- 頁面標題與操作區 -->
+      <!-- 頁面標題 -->
       <div class="mb-8">
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div class="flex items-center justify-between">
           <div>
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">ISP 表單管理</h1>
-            <p class="text-gray-600">個別化服務計畫目標擬定討論記錄</p>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">教育治療評鑑管理</h1>
+            <p class="text-gray-600">學生學習成效評量與教學決定記錄</p>
           </div>
-          
-          <!-- 右側操作區：搜尋與新增按鈕 -->
-          <div class="flex items-center gap-3 w-full md:w-auto">
-            <UInput 
-              v-model="searchQuery"
-              icon="i-heroicons-magnifying-glass"
-              placeholder="搜尋學生姓名..."
-              class="w-full md:w-64 bg-white rounded-md shadow-sm"
-              :ui="{ icon: { trailing: { pointer: '' } } }"
-            >
-              <template #trailing v-if="searchQuery">
-                <UButton
-                  color="gray"
-                  variant="link"
-                  icon="i-heroicons-x-mark"
-                  :padded="false"
-                  @click="searchQuery = ''"
-                />
-              </template>
-            </UInput>
-
-            <UButton 
-              color="green" 
-              size="md"
-              @click="createNewForm"
-            >
-              <UIcon name="i-heroicons-plus" class="mr-2" />
-              新增表單
-            </UButton>
-          </div>
+          <UButton 
+            color="blue" 
+            size="lg"
+            @click="createNewForm"
+          >
+            <UIcon name="i-heroicons-plus" class="mr-2" />
+            新增評鑑記錄
+          </UButton>
         </div>
       </div>
 
       <!-- 載入中 -->
       <div v-if="loading" class="flex justify-center items-center py-12">
         <div class="text-center">
-          <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 text-green-500 animate-spin mx-auto mb-2" />
+          <UIcon name="i-heroicons-arrow-path" class="w-8 h-8 text-blue-500 animate-spin mx-auto mb-2" />
           <p class="text-gray-600">載入中...</p>
         </div>
       </div>
 
-      <!-- 表單列表 -->
-      <div v-else-if="forms.length > 0" class="space-y-4">
+      <!-- 評鑑記錄列表 -->
+      <div v-else-if="evaluations.length > 0" class="space-y-4">
         <UCard 
-          v-for="form in forms" 
-          :key="form.id"
+          v-for="evaluation in evaluations" 
+          :key="evaluation.id"
           class="hover:shadow-lg transition-shadow"
         >
           <div class="flex items-center justify-between">
             <div class="flex-1">
               <div class="flex items-center space-x-3 mb-2">
-                <h3 class="text-xl font-bold text-gray-800">{{ form.studentName }}</h3>
+                <h3 class="text-xl font-bold text-gray-800">{{ evaluation.studentName }}</h3>
               </div>
               
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
                 <div>
-                  <span class="font-medium">第幾次：</span>
-                  <span>{{ form.sessionNumber || '-' }}</span>
+                  <span class="font-medium">評鑑日期：</span>
+                  <span>{{ evaluation.evaluationDate || '-' }}</span>
                 </div>
                 <div>
-                  <span class="font-medium">擬定者：</span>
-                  <span>{{ form.planner || '-' }}</span>
+                  <span class="font-medium">評鑑者：</span>
+                  <span>{{ evaluation.evaluatorName || '-' }}</span>
                 </div>
                 <div>
-                  <span class="font-medium">執行期間：</span>
-                  <span>{{ form.startDate || '-' }} ~ {{ form.endDate || '-' }}</span>
+                  <span class="font-medium">評鑑期間：</span>
+                  <span>{{ evaluation.startDate || '-' }} ~ {{ evaluation.endDate || '-' }}</span>
                 </div>
                 <div>
-                  <span class="font-medium">更新時間：</span>
-                  <span>{{ formatDate(form.updatedAt) }}</span>
+                  <span class="font-medium">目標數量：</span>
+                  <span>{{ evaluation.goals?.length || 0 }} 個</span>
                 </div>
               </div>
 
-                <div v-if="form.selectedDomains && form.selectedDomains.length > 0" class="mt-3 flex flex-wrap gap-2">
-                  <UBadge 
-                    v-for="domainId in form.selectedDomains" 
-                    :key="domainId"
-                    color="blue" 
-                    variant="soft"
-                    size="xs"
-                  >
-                    {{ getDomainName(domainId) }}
+              <!-- 顯示平均分數 -->
+              <div v-if="evaluation.goals && evaluation.goals.length > 0" class="mt-3 flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                  <span class="text-sm text-gray-600">平均總分：</span>
+                  <UBadge color="indigo" variant="soft">
+                    {{ calculateAverageScore(evaluation.goals) }} / 16
                   </UBadge>
                 </div>
+                <div class="text-xs text-gray-500">
+                  更新時間：{{ formatDate(evaluation.updatedAt) }}
+                </div>
               </div>
+            </div>
 
             <div class="flex items-center space-x-2 ml-4">
               <UButton 
                 color="blue" 
                 variant="soft"
                 size="sm"
-                @click="editForm(form.id)"
+                @click="editForm(evaluation.id)"
               >
                 <UIcon name="i-heroicons-pencil-square" class="mr-1" />
                 編輯
               </UButton>
-
+              
               <UButton 
-                color="green" 
+                color="gray" 
                 variant="soft"
                 size="sm"
-                @click="exportForm(form.id)"
-                :loading="exportingId === form.id"
+                @click="viewForm(evaluation.id)"
               >
-                <UIcon name="i-heroicons-arrow-down-tray" class="mr-1" />
-                匯出
+                <UIcon name="i-heroicons-eye" class="mr-1" />
+                檢視
               </UButton>
 
-                <UButton 
-                  color="red" 
-                  variant="soft" 
-                  size="sm" 
-                  @click="confirmDelete(form)"
-                >
-                  <UIcon name="i-heroicons-trash" />
-                </UButton>
-              </div>
+              <UButton 
+                color="red" 
+                variant="soft"
+                size="sm"
+                @click="confirmDelete(evaluation)"
+              >
+                <UIcon name="i-heroicons-trash" />
+              </UButton>
             </div>
-          </UCard>
-        </div>
-
-        <!-- 搜尋無結果狀態 -->
-        <div v-else class="text-center py-12 bg-white/50 rounded-xl border border-dashed border-gray-300">
-          <UIcon name="i-heroicons-magnifying-glass" class="w-12 h-12 text-gray-400 mx-auto mb-2" />
-          <h3 class="text-lg font-medium text-gray-700">找不到符合的結果</h3>
-          <p class="text-gray-500">嘗試搜尋其他關鍵字</p>
-          <UButton 
-            variant="link" 
-            color="green" 
-            class="mt-2"
-            @click="searchQuery = ''"
-          >
-            清除搜尋
-          </UButton>
-        </div>
-
+          </div>
+        </UCard>
       </div>
 
-      <!-- 完全無資料的空狀態 (還沒建立過任何表單) -->
+      <!-- 空狀態 -->
       <UCard v-else class="text-center py-12">
         <div class="flex flex-col items-center space-y-4">
           <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center">
-            <UIcon name="i-heroicons-document-text" class="w-12 h-12 text-gray-400" />
+            <UIcon name="i-heroicons-chart-bar" class="w-12 h-12 text-gray-400" />
           </div>
           <div>
-            <h3 class="text-xl font-bold text-gray-800 mb-2">尚無 ISP 表單</h3>
-            <p class="text-gray-600 mb-4">開始建立您的第一份個別化服務計畫</p>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">尚無評鑑記錄</h3>
+            <p class="text-gray-600 mb-4">開始建立您的第一份教育治療評鑑記錄</p>
             <UButton 
-              color="green" 
+              color="blue" 
               size="lg"
               @click="createNewForm"
             >
               <UIcon name="i-heroicons-plus" class="mr-2" />
-              新增表單
+              新增評鑑記錄
             </UButton>
           </div>
         </div>
@@ -227,13 +188,13 @@
 
           <div class="space-y-4">
             <p class="text-gray-600">
-              確定要刪除「<strong>{{ deleteTarget?.studentName }}</strong>」的表單嗎？
+              確定要刪除「<strong>{{ deleteTarget?.studentName }}</strong>」的評鑑記錄嗎？
             </p>
             <UAlert color="red" variant="soft">
               <template #title>
                 <span>此操作無法復原</span>
               </template>
-              <p class="text-sm mt-1">刪除後，所有資料將永久移除。</p>
+              <p class="text-sm mt-1">刪除後，所有評鑑資料將永久移除。</p>
             </UAlert>
           </div>
 
@@ -241,7 +202,7 @@
             <div class="flex justify-end gap-3">
               <UButton 
                 color="gray" 
-                variant="soft" 
+                variant="soft"
                 @click="showDeleteModal = false"
               >
                 取消
@@ -264,13 +225,11 @@
 </template>
 
 <script setup lang="ts">
-import { collection, query, where, getDocs, getDoc, deleteDoc, doc, getFirestore, orderBy } from 'firebase/firestore'
+import { collection, query, where, getDocs, deleteDoc, doc, getFirestore } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 import { useAuth } from '~/composables/useAuth'
-import { useIspWordExport } from '~/composables/useIspWordExport'
 
 const { user } = useAuth()
-const { generateIspWord } = useIspWordExport()
 
 // 取得 Firestore 實例
 const getDb = () => {
@@ -278,28 +237,14 @@ const getDb = () => {
   return getFirestore(app)
 }
 
-// 領域定義
-const domainMap: Record<string, string> = {
-  sensory: '感官知覺',
-  grossMotor: '粗大動作',
-  fineMotor: '精細動作',
-  selfCare: '生活自理',
-  language: '語言溝通',
-  cognitive: '認知',
-  social: '社會適應'
-}
-
-const getDomainName = (id: string) => domainMap[id] || id
-
 // 狀態
-const forms = ref<any[]>([])
+const evaluations = ref<any[]>([])
 const loading = ref(true)
 const showDeleteModal = ref(false)
 const deleteTarget = ref<any>(null)
 const isDeleting = ref(false)
-const exportingId = ref<string | null>(null)
 
-// 載入表單列表
+// 載入評鑑記錄列表
 const loadForms = async () => {
   if (!user.value) {
     loading.value = false
@@ -310,14 +255,14 @@ const loadForms = async () => {
     loading.value = true
     const db = getDb()
     const q = query(
-      collection(db, 'isp_forms'),
+      collection(db, 'evaluation_forms'),
       where('userId', '==', user.value.uid)
     )
     
     const querySnapshot = await getDocs(q)
     
     // 轉換為陣列並按更新時間排序
-    forms.value = querySnapshot.docs
+    evaluations.value = querySnapshot.docs
       .map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -328,18 +273,25 @@ const loadForms = async () => {
         return bTime - aTime // 降序排列
       })
   } catch (error) {
-    console.error('載入表單失敗:', error)
-    alert('載入表單失敗，請重新整理頁面')
+    console.error('載入評鑑記錄失敗:', error)
+    alert('載入評鑑記錄失敗，請重新整理頁面')
   } finally {
     loading.value = false
   }
+}
+
+// 計算平均分數
+const calculateAverageScore = (goals: any[]) => {
+  if (!goals || goals.length === 0) return 0
+  const totalScore = goals.reduce((sum, goal) => sum + (goal.totalScore || 0), 0)
+  return (totalScore / goals.length).toFixed(1)
 }
 
 // 格式化日期
 const formatDate = (timestamp: any) => {
   if (!timestamp) return '-'
   try {
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
+    const date = timestamp.toDate()
     return new Intl.DateTimeFormat('zh-TW', {
       year: 'numeric',
       month: '2-digit',
@@ -352,33 +304,38 @@ const formatDate = (timestamp: any) => {
   }
 }
 
-// 新增表單
+// 新增評鑑記錄
 const createNewForm = () => {
-  navigateTo('/isp-form?new=true')
+  navigateTo('/evaluation-form?new=true')
 }
 
-// 編輯表單
+// 編輯評鑑記錄
 const editForm = (formId: string) => {
-  navigateTo(`/isp-form?edit=${formId}`)
+  navigateTo(`/evaluation-form?edit=${formId}`)
+}
+
+// 檢視評鑑記錄
+const viewForm = (formId: string) => {
+  navigateTo(`/evaluation-form?view=${formId}`)
 }
 
 // 確認刪除
-const confirmDelete = (form: any) => {
-  deleteTarget.value = form
+const confirmDelete = (evaluation: any) => {
+  deleteTarget.value = evaluation
   showDeleteModal.value = true
 }
 
-// 刪除表單
+// 刪除評鑑記錄
 const deleteForm = async () => {
   if (!deleteTarget.value) return
 
   try {
     isDeleting.value = true
     const db = getDb()
-    await deleteDoc(doc(db, 'isp_forms', deleteTarget.value.id))
+    await deleteDoc(doc(db, 'evaluation_forms', deleteTarget.value.id))
     
     // 從列表中移除
-    forms.value = forms.value.filter(f => f.id !== deleteTarget.value.id)
+    evaluations.value = evaluations.value.filter(f => f.id !== deleteTarget.value.id)
     
     showDeleteModal.value = false
     deleteTarget.value = null
@@ -390,34 +347,6 @@ const deleteForm = async () => {
   }
 }
 
-// 匯出表單為 Word 文件
-const exportForm = async (formId: string) => {
-  if (!user.value) {
-    alert('請先登入')
-    return
-  }
-
-  try {
-    exportingId.value = formId
-    const db = getDb()
-    const docRef = doc(db, 'isp_forms', formId)
-    const docSnap = await getDoc(docRef)
-    
-    if (docSnap.exists()) {
-      await generateIspWord(docSnap.data())
-      // 成功提示（可選）
-      // alert('Word 文件已下載！')
-    } else {
-      alert('找不到該表單')
-    }
-  } catch (error) {
-    console.error('匯出失敗:', error)
-    alert('匯出失敗，請稍後再試')
-  } finally {
-    exportingId.value = null
-  }
-}
-
 // 監聽用戶登入狀態
 watch(user, async (newUser) => {
   if (newUser) {
@@ -425,7 +354,7 @@ watch(user, async (newUser) => {
   }
 }, { immediate: true })
 
-// 頁面載入時載入表單
+// 頁面載入時載入評鑑記錄
 onMounted(async () => {
   if (user.value) {
     await loadForms()

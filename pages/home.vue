@@ -30,9 +30,27 @@
                   心路基金會
                 </span>
               </div>
-              <div class="hidden md:flex items-center gap-1">
-                <UButton to="/home" variant="ghost" color="green" class="font-medium">首頁</UButton>
-                <UButton to="/isp-list" variant="ghost" color="gray">ISP 表單列表</UButton>
+
+              <!-- 導航按鈕 -->
+              <div class="hidden md:flex items-center space-x-2">
+                <UButton 
+                  color="green" 
+                  variant="solid"
+                  size="sm"
+                  @click="navigateTo('/home')"
+                >
+                  <UIcon name="i-heroicons-home" class="mr-1" />
+                  首頁
+                </UButton>
+                <UButton 
+                  color="gray" 
+                  variant="soft"
+                  size="sm"
+                  @click="navigateTo('/isp-list')"
+                >
+                  <UIcon name="i-heroicons-document-text" class="mr-1" />
+                  ISP 表單
+                </UButton>
               </div>
             </div>
 
@@ -208,8 +226,44 @@
             </div>
           </template>
         </UCard>
-      </UModal>
+      
+        <!-- 快速功能區 -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- ISP 表單卡片 -->
+          <UCard 
+            class="hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-green-300"
+            @click="navigateTo('/isp-list')"
+          >
+            <div class="flex items-start space-x-4">
+              <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                <UIcon name="i-heroicons-document-text" class="w-6 h-6 text-green-600" />
+              </div>
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-800 mb-1">ISP 表單</h3>
+                <p class="text-sm text-gray-600">個別化服務計畫目標擬定討論記錄</p>
+              </div>
+              <UIcon name="i-heroicons-arrow-right" class="w-5 h-5 text-gray-400" />
+            </div>
+          </UCard>
 
+          <!-- 教育治療評鑑卡片 -->
+          <UCard 
+            class="hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-blue-300"
+            @click="navigateTo('/evaluation-list')"
+          >
+            <div class="flex items-start space-x-4">
+              <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <UIcon name="i-heroicons-chart-bar" class="w-6 h-6 text-blue-600" />
+              </div>
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-800 mb-1">教育治療評鑑</h3>
+                <p class="text-sm text-gray-600">學生學習成效評量與教學決定記錄</p>
+              </div>
+              <UIcon name="i-heroicons-arrow-right" class="w-5 h-5 text-gray-400" />
+            </div>
+          </UCard>
+        </div>
+      </div>
     </div>
   </div>
 </template>
