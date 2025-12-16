@@ -4,7 +4,6 @@
     <div class="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
-          <!-- Logo 區 -->
           <div class="flex items-center space-x-6">
             <div class="flex items-center space-x-3">
               <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
@@ -13,34 +12,15 @@
               <span class="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">心路基金會</span>
             </div>
 
-            <!-- 導航按鈕 -->
             <div class="hidden md:flex items-center space-x-2">
-              <UButton 
-                color="gray" 
-                variant="soft"
-                size="sm"
-                @click="navigateTo('/home')"
-              >
-                <UIcon name="i-heroicons-home" class="mr-1" />
-                首頁
+              <UButton color="gray" variant="soft" size="sm" @click="navigateTo('/home')">
+                <UIcon name="i-heroicons-home" class="mr-1" />首頁
               </UButton>
-              <UButton 
-                color="gray" 
-                variant="soft"
-                size="sm"
-                @click="navigateTo('/isp-list')"
-              >
-                <UIcon name="i-heroicons-document-text" class="mr-1" />
-                ISP 表單
+              <UButton color="gray" variant="soft" size="sm" @click="navigateTo('/isp-list')">
+                <UIcon name="i-heroicons-document-text" class="mr-1" />ISP 表單
               </UButton>
-              <UButton 
-                color="gray" 
-                variant="soft"
-                size="sm"
-                @click="navigateTo('/evaluation-list')"
-              >
-                <UIcon name="i-heroicons-chart-bar" class="mr-1" />
-                教育治療評鑑
+              <UButton color="gray" variant="soft" size="sm" @click="navigateTo('/evaluation-list')">
+                <UIcon name="i-heroicons-chart-bar" class="mr-1" />教育治療評鑑
               </UButton>
             </div>
           </div>
@@ -48,540 +28,543 @@
       </div>
     </div>
 
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- 主要內容 -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
-      <!-- 頁面標題 -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">
-          {{ isViewMode ? '檢視評鑑記錄' : isNewForm ? '新增評鑑記錄' : '編輯評鑑記錄' }}
-        </h1>
-        <p class="text-gray-600">教育治療評鑑 - 學生學習成效評量與教學決定</p>
+      <!-- 表單標題 -->
+      <div class="mb-8 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full mb-4 shadow-lg">
+          <UIcon name="i-heroicons-chart-bar" class="w-8 h-8 text-white" />
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">教育/治療目標成效評量</h1>
+        <p class="text-gray-600">私立心路桃園發展中心</p>
       </div>
 
       <!-- 進度指示器 -->
       <div class="mb-8">
-        <div class="flex items-center justify-between">
-          <div 
-            v-for="(step, index) in steps" 
-            :key="index"
-            class="flex-1"
-          >
-            <div class="flex items-center">
+        <UCard>
+          <div class="flex justify-between items-center">
+            <div 
+              v-for="(step, idx) in steps" 
+              :key="idx"
+              class="flex-1 flex items-center"
+            >
               <div class="flex flex-col items-center flex-1">
                 <div 
-                  class="w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all"
-                  :class="currentStep === index ? 'bg-blue-500 text-white' : currentStep > index ? 'bg-blue-200 text-blue-700' : 'bg-gray-200 text-gray-500'"
+                  class="w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all"
+                  :class="currentStep >= idx ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-500'"
                 >
-                  {{ index + 1 }}
+                  {{ idx + 1 }}
                 </div>
-                <div 
-                  class="text-xs mt-2 font-medium text-center"
-                  :class="currentStep === index ? 'text-blue-600' : 'text-gray-500'"
-                >
-                  {{ step }}
-                </div>
+                <span class="mt-2 text-xs font-medium text-gray-600">{{ step }}</span>
               </div>
               <div 
-                v-if="index < steps.length - 1"
-                class="h-1 flex-1 mx-2"
-                :class="currentStep > index ? 'bg-blue-200' : 'bg-gray-200'"
+                v-if="idx < steps.length - 1"
+                class="flex-1 h-1 mx-2 transition-all"
+                :class="currentStep > idx ? 'bg-blue-500' : 'bg-gray-200'"
               ></div>
             </div>
           </div>
+        </UCard>
+      </div>
+
+      <!-- 步驟 1: 匯入 ISP 目標 -->
+      <UCard v-if="currentStep === 0" class="mb-6">
+        <template #header>
+          <div class="flex items-center space-x-2">
+            <UIcon name="i-heroicons-arrow-down-tray" class="w-5 h-5 text-blue-600" />
+            <h2 class="text-xl font-bold text-gray-800">從 ISP 表單匯入目標</h2>
+          </div>
+        </template>
+
+        <div v-if="ispFormOptions.length > 0" class="space-y-6">
+          <UFormGroup label="選擇 ISP 表單" required>
+            <USelect
+              v-model="selectedIspForm"
+              :options="ispFormOptions"
+              placeholder="請選擇要匯入的 ISP 表單"
+              size="lg"
+              :disabled="isViewMode || hasImported"
+            />
+          </UFormGroup>
+          
+          <div v-if="selectedIspForm && !hasImported" class="flex justify-center">
+            <UButton 
+              color="blue"
+              size="lg"
+              @click="importFromIsp"
+              :loading="isImporting"
+            >
+              <UIcon name="i-heroicons-arrow-down-tray" class="mr-2" />
+              匯入目標
+            </UButton>
+          </div>
+
+          <!-- 已匯入的資訊預覽 -->
+          <div v-if="hasImported" class="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div class="flex items-start space-x-3">
+              <UIcon name="i-heroicons-check-circle" class="w-6 h-6 text-green-600 mt-1" />
+              <div class="flex-1">
+                <h3 class="font-semibold text-green-800 mb-2">已成功匯入目標</h3>
+                <div class="text-sm text-green-700 space-y-1">
+                  <p><span class="font-medium">幼生姓名:</span> {{ formData.studentName }}</p>
+                  <p><span class="font-medium">期數:</span> 第 {{ formData.sessionNumber }} 次</p>
+                  <p><span class="font-medium">執行期間:</span> {{ formData.startDate }} ~ {{ formData.endDate }}</p>
+                  <p><span class="font-medium">匯入領域:</span> {{ formData.domains.length }} 個領域，共 {{ totalGoals }} 個目標</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+        
+        <div v-else class="text-center py-12">
+          <UIcon name="i-heroicons-exclamation-circle" class="w-20 h-20 mx-auto mb-4 text-gray-300" />
+          <p class="text-gray-600 text-lg mb-2">目前沒有可用的 ISP 表單</p>
+          <p class="text-gray-500 text-sm mb-6">請先建立 ISP 表單</p>
+          <UButton color="green" variant="soft" @click="navigateTo('/isp-list')">
+            <UIcon name="i-heroicons-document-text" class="mr-2" />
+            前往 ISP 表單管理
+          </UButton>
+        </div>
 
-      <!-- 步驟 1: 基本資訊 -->
-      <div v-if="currentStep === 0">
-        <UCard>
-          <template #header>
-            <div class="flex items-center space-x-2">
-              <UIcon name="i-heroicons-information-circle" class="w-6 h-6 text-blue-600" />
-              <h2 class="text-xl font-bold text-gray-800">基本資訊</h2>
-            </div>
-          </template>
-
-          <div class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <UFormGroup label="學生姓名" required>
-                <UInput 
-                  v-model="formData.studentName"
-                  placeholder="請輸入學生姓名"
-                  size="lg"
-                  :disabled="isViewMode"
-                />
-              </UFormGroup>
-
-              <UFormGroup label="評鑑日期" required>
-                <UInput 
-                  v-model="formData.evaluationDate"
-                  type="date"
-                  size="lg"
-                  :disabled="isViewMode"
-                />
-              </UFormGroup>
-            </div>
-
-            <UFormGroup label="評鑑者姓名" required>
-              <UInput 
-                v-model="formData.evaluatorName"
-                placeholder="請輸入評鑑者姓名"
-                size="lg"
-                :disabled="isViewMode"
-              />
-            </UFormGroup>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <UFormGroup label="評鑑期間 - 開始日期" required>
-                <UInput 
-                  v-model="formData.startDate"
-                  type="date"
-                  size="lg"
-                  :disabled="isViewMode"
-                />
-              </UFormGroup>
-
-              <UFormGroup label="評鑑期間 - 結束日期" required>
-                <UInput 
-                  v-model="formData.endDate"
-                  type="date"
-                  size="lg"
-                  :disabled="isViewMode"
-                />
-              </UFormGroup>
-            </div>
+        <template #footer v-if="hasImported">
+          <div class="flex justify-end">
+            <UButton color="blue" size="lg" @click="nextStep">
+              下一步
+              <UIcon name="i-heroicons-arrow-right" class="ml-2" />
+            </UButton>
           </div>
+        </template>
+      </UCard>
 
-          <template #footer>
-            <div class="flex justify-between">
-              <UButton 
-                color="gray" 
-                variant="soft"
-                size="lg"
-                @click="navigateTo('/evaluation-list')"
-              >
-                <UIcon name="i-heroicons-arrow-left" class="mr-2" />
-                返回列表
-              </UButton>
-              <UButton 
-                color="blue" 
-                size="lg"
-                @click="nextStep"
-              >
-                下一步：選擇目標
-                <UIcon name="i-heroicons-arrow-right" class="ml-2" />
-              </UButton>
-            </div>
-          </template>
-        </UCard>
-      </div>
-
-      <!-- 步驟 2: 選擇評鑑目標 -->
-      <div v-if="currentStep === 1">
-        <UCard class="mb-6">
-          <template #header>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2">
-                <UIcon name="i-heroicons-clipboard-document-list" class="w-6 h-6 text-blue-600" />
-                <h2 class="text-xl font-bold text-gray-800">選擇評鑑目標</h2>
-              </div>
-            </div>
-          </template>
-
-          <!-- 從 ISP 匯入目標 -->
-          <div v-if="!isViewMode" class="mb-6">
-            <UAlert color="blue" variant="soft">
-              <template #title>
-                <div class="flex items-center space-x-2">
-                  <UIcon name="i-heroicons-information-circle" />
-                  <span>從 ISP 表單匯入目標</span>
-                </div>
-              </template>
-              <div class="mt-3 space-y-3">
-                <UFormGroup label="選擇 ISP 表單">
-                  <USelect
-                    v-model="selectedIspForm"
-                    :options="ispFormOptions"
-                    placeholder="選擇要匯入目標的 ISP 表單"
-                    size="lg"
-                  />
-                </UFormGroup>
-                <UButton 
-                  v-if="selectedIspForm"
-                  color="blue"
-                  @click="importFromIsp"
-                  :loading="isImporting"
-                >
-                  <UIcon name="i-heroicons-arrow-down-tray" class="mr-2" />
-                  匯入目標
-                </UButton>
-              </div>
-            </UAlert>
+      <!-- 步驟 2: 執行情境 -->
+      <UCard v-if="currentStep === 1" class="mb-6">
+        <template #header>
+          <div class="flex items-center space-x-2">
+            <UIcon name="i-heroicons-academic-cap" class="w-5 h-5 text-blue-600" />
+            <h2 class="text-xl font-bold text-gray-800">執行情境</h2>
           </div>
+        </template>
 
-          <!-- 已選擇的目標列表 -->
-          <div class="space-y-4">
-            <div class="flex items-center justify-between mb-4">
-              <h3 class="text-lg font-semibold text-gray-800">評鑑目標列表</h3>
-              <UButton 
-                v-if="!isViewMode"
-                color="blue" 
-                variant="soft"
-                @click="addManualGoal"
-              >
-                <UIcon name="i-heroicons-plus" class="mr-1" />
-                手動新增目標
-              </UButton>
-            </div>
-
-            <div v-if="formData.goals.length === 0" class="text-center py-8 text-gray-500">
-              <UIcon name="i-heroicons-clipboard-document-list" class="w-12 h-12 mx-auto mb-2 text-gray-400" />
-              <p>尚未新增評鑑目標</p>
-              <p class="text-sm mt-1">請從 ISP 表單匯入或手動新增目標</p>
-            </div>
-
-            <div v-else class="space-y-3">
-              <UCard 
-                v-for="(goal, index) in formData.goals"
-                :key="goal.id"
-                class="border-2"
-                :class="goal.source === 'isp' ? 'border-green-200 bg-green-50/30' : 'border-blue-200 bg-blue-50/30'"
-              >
-                <div class="flex items-start space-x-3">
-                  <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center">
-                    <UBadge color="blue" variant="soft">{{ index + 1 }}</UBadge>
-                  </div>
-                  <div class="flex-1">
-                    <div class="flex items-center space-x-2 mb-2">
-                      <UBadge 
-                        :color="goal.source === 'isp' ? 'green' : 'blue'" 
-                        variant="soft"
-                        size="xs"
-                      >
-                        {{ goal.source === 'isp' ? '來自 ISP' : '手動新增' }}
-                      </UBadge>
-                    </div>
-                    <UTextarea
-                      v-model="goal.goalText"
-                      placeholder="請輸入評鑑目標內容"
-                      :rows="2"
-                      size="lg"
-                      :disabled="isViewMode"
-                    />
-                  </div>
-                  <UButton 
-                    v-if="!isViewMode"
-                    color="red" 
-                    variant="soft"
-                    size="sm"
-                    square
-                    @click="removeGoal(index)"
-                  >
-                    <UIcon name="i-heroicons-trash" />
-                  </UButton>
-                </div>
-              </UCard>
-            </div>
-          </div>
-
-          <template #footer>
-            <div class="flex justify-between">
-              <UButton 
-                color="gray" 
-                variant="soft"
-                size="lg"
-                @click="prevStep"
-              >
-                <UIcon name="i-heroicons-arrow-left" class="mr-2" />
-                上一步
-              </UButton>
-              <UButton 
-                color="blue" 
-                size="lg"
-                @click="nextStep"
-                :disabled="formData.goals.length === 0"
-              >
-                下一步：教學決定
-                <UIcon name="i-heroicons-arrow-right" class="ml-2" />
-              </UButton>
-            </div>
-          </template>
-        </UCard>
-      </div>
-
-      <!-- 步驟 3: 教學決定 -->
-      <div v-if="currentStep === 2">
-        <UCard 
-          v-for="(goal, index) in formData.goals"
-          :key="goal.id"
-          class="mb-6"
-        >
-          <template #header>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span class="text-lg font-bold text-blue-600">{{ index + 1 }}</span>
-                </div>
-                <div>
-                  <h3 class="text-lg font-bold text-gray-800">目標 {{ index + 1 }}</h3>
-                  <p class="text-sm text-gray-600 line-clamp-1">{{ goal.goalText }}</p>
-                </div>
+        <div class="space-y-8">
+          <div v-for="(domain, domainIndex) in formData.domains" :key="domainIndex" class="p-6 bg-gray-50 rounded-lg">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">{{ domain.domainName }}</h3>
+            
+            <div v-for="(goal, goalIndex) in domain.goals" :key="goalIndex" class="mb-6 last:mb-0">
+              <div class="mb-3">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">目標 {{ goalIndex + 1 }}</label>
+                <p class="text-sm text-gray-600">{{ goal.shortTermGoal }}</p>
               </div>
-            </div>
-          </template>
-
-          <div class="space-y-6">
-            <!-- 目標學習情形 -->
-            <UFormGroup label="目標學習情形" required>
-              <UTextarea
-                v-model="goal.learningStatus"
-                placeholder="請描述學生在此目標的學習情形、進展與表現..."
-                :rows="4"
-                size="lg"
-                :disabled="isViewMode"
-              />
-            </UFormGroup>
-
-            <!-- 延續教學與否 -->
-            <UFormGroup label="延續教學與否" required>
-              <div class="flex gap-4">
-                <label class="flex items-center space-x-2 cursor-pointer">
+              
+              <div class="flex flex-wrap gap-3">
+                <label v-for="context in executionContexts" :key="context" class="flex items-center space-x-2 px-4 py-2 bg-white border-2 rounded-lg cursor-pointer transition-all hover:border-blue-300" :class="goal.executionContexts.includes(context) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'">
                   <input 
-                    type="radio" 
-                    v-model="goal.continueTeaching" 
-                    value="yes"
+                    type="checkbox" 
+                    :value="context" 
+                    v-model="goal.executionContexts"
                     :disabled="isViewMode"
-                    class="w-4 h-4 text-blue-600"
+                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
-                  <span>是，繼續教學</span>
-                </label>
-                <label class="flex items-center space-x-2 cursor-pointer">
-                  <input 
-                    type="radio" 
-                    v-model="goal.continueTeaching" 
-                    value="no"
-                    :disabled="isViewMode"
-                    class="w-4 h-4 text-blue-600"
-                  />
-                  <span>否，不繼續</span>
-                </label>
-                <label class="flex items-center space-x-2 cursor-pointer">
-                  <input 
-                    type="radio" 
-                    v-model="goal.continueTeaching" 
-                    value="other"
-                    :disabled="isViewMode"
-                    class="w-4 h-4 text-blue-600"
-                  />
-                  <span>其他</span>
+                  <span class="text-sm font-medium">{{ context }}</span>
                 </label>
               </div>
-            </UFormGroup>
-
-            <!-- 其他事項 -->
-            <UFormGroup label="其他事項">
-              <UTextarea
-                v-model="goal.otherNotes"
-                placeholder="可註明其他相關事項或建議..."
-                :rows="3"
-                size="lg"
-                :disabled="isViewMode"
-              />
-            </UFormGroup>
-          </div>
-        </UCard>
-
-        <UCard>
-          <template #footer>
-            <div class="flex justify-between">
-              <UButton 
-                color="gray" 
-                variant="soft"
-                size="lg"
-                @click="prevStep"
-              >
-                <UIcon name="i-heroicons-arrow-left" class="mr-2" />
-                上一步
-              </UButton>
-              <UButton 
-                color="blue" 
-                size="lg"
-                @click="nextStep"
-              >
-                下一步：成效評量
-                <UIcon name="i-heroicons-arrow-right" class="ml-2" />
-              </UButton>
             </div>
-          </template>
-        </UCard>
-      </div>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-between">
+            <UButton color="gray" size="lg" @click="prevStep">
+              <UIcon name="i-heroicons-arrow-left" class="mr-2" />
+              上一步
+            </UButton>
+            <UButton color="blue" size="lg" @click="nextStep">
+              下一步
+              <UIcon name="i-heroicons-arrow-right" class="ml-2" />
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+
+      <!-- 步驟 3: 教學時間起訖日期 -->
+      <UCard v-if="currentStep === 2" class="mb-6">
+        <template #header>
+          <div class="flex items-center space-x-2">
+            <UIcon name="i-heroicons-calendar" class="w-5 h-5 text-blue-600" />
+            <h2 class="text-xl font-bold text-gray-800">教學時間起訖日期</h2>
+          </div>
+        </template>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <UFormGroup label="起始日期" required>
+            <UInput 
+              v-model="formData.startDate" 
+              type="date"
+              size="lg"
+              icon="i-heroicons-calendar"
+              :disabled="isViewMode"
+            />
+          </UFormGroup>
+
+          <UFormGroup label="結束日期" required>
+            <UInput 
+              v-model="formData.endDate" 
+              type="date"
+              size="lg"
+              icon="i-heroicons-calendar"
+              :disabled="isViewMode"
+            />
+          </UFormGroup>
+
+          <UFormGroup label="設計人">
+            <UInput 
+              v-model="formData.designer" 
+              placeholder="請輸入設計人姓名"
+              size="lg"
+              icon="i-heroicons-user"
+              :disabled="isViewMode"
+            />
+          </UFormGroup>
+
+          <UFormGroup label="執行者">
+            <UInput 
+              v-model="formData.executor" 
+              placeholder="請輸入執行者姓名"
+              size="lg"
+              icon="i-heroicons-user"
+              :disabled="isViewMode"
+            />
+          </UFormGroup>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-between">
+            <UButton color="gray" size="lg" @click="prevStep">
+              <UIcon name="i-heroicons-arrow-left" class="mr-2" />
+              上一步
+            </UButton>
+            <UButton color="blue" size="lg" @click="nextStep">
+              下一步
+              <UIcon name="i-heroicons-arrow-right" class="ml-2" />
+            </UButton>
+          </div>
+        </template>
+      </UCard>
 
       <!-- 步驟 4: 成效評量 -->
-      <div v-if="currentStep === 3">
-        <UCard 
-          v-for="(goal, index) in formData.goals"
-          :key="goal.id"
-          class="mb-6"
-        >
-          <template #header>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                  <span class="text-lg font-bold text-indigo-600">{{ index + 1 }}</span>
-                </div>
-                <div>
-                  <h3 class="text-lg font-bold text-gray-800">目標 {{ index + 1 }} - 成效評量</h3>
-                  <p class="text-sm text-gray-600 line-clamp-1">{{ goal.goalText }}</p>
-                </div>
-              </div>
-              <UBadge color="indigo" variant="soft" size="lg">
-                總分：{{ goal.totalScore }} / 16
-              </UBadge>
-            </div>
-          </template>
+      <UCard v-if="currentStep === 3" class="mb-6">
+        <template #header>
+          <div class="flex items-center space-x-2">
+            <UIcon name="i-heroicons-chart-bar-square" class="w-5 h-5 text-blue-600" />
+            <h2 class="text-xl font-bold text-gray-800">成效評量</h2>
+          </div>
+        </template>
 
-          <div class="space-y-6">
-            <!-- A. 達成度 -->
-            <div class="p-4 bg-blue-50 rounded-lg">
-              <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
-                <span class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center mr-2 text-sm">A</span>
-                達成度
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
-                <label 
-                  v-for="score in 5" 
-                  :key="score - 1"
-                  class="flex flex-col p-3 border-2 rounded-lg cursor-pointer transition-all"
-                  :class="goal.achievement === score - 1 ? 'border-blue-500 bg-blue-100' : 'border-gray-200 bg-white hover:border-blue-300'"
-                >
-                  <input 
-                    type="radio" 
-                    v-model.number="goal.achievement" 
-                    :value="score - 1"
-                    :disabled="isViewMode"
-                    class="sr-only"
-                  />
-                  <span class="text-lg font-bold text-center mb-1">{{ score - 1 }}</span>
-                  <span class="text-xs text-gray-600 text-center">{{ getAchievementLabel(score - 1) }}</span>
-                </label>
+        <div class="space-y-8">
+          <div v-for="(domain, domainIndex) in formData.domains" :key="domainIndex" class="p-6 bg-gray-50 rounded-lg">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">{{ domain.domainName }}</h3>
+            
+            <div v-for="(goal, goalIndex) in domain.goals" :key="goalIndex" class="mb-8 last:mb-0">
+              <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">目標 {{ goalIndex + 1 }}</label>
+                <p class="text-sm text-gray-600 mb-2">{{ goal.shortTermGoal }}</p>
               </div>
-            </div>
 
-            <!-- B. 量 -->
-            <div class="p-4 bg-green-50 rounded-lg">
-              <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
-                <span class="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center mr-2 text-sm">B</span>
-                量
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
-                <label 
-                  v-for="score in 5" 
-                  :key="score - 1"
-                  class="flex flex-col p-3 border-2 rounded-lg cursor-pointer transition-all"
-                  :class="goal.quantity === score - 1 ? 'border-green-500 bg-green-100' : 'border-gray-200 bg-white hover:border-green-300'"
-                >
-                  <input 
-                    type="radio" 
-                    v-model.number="goal.quantity" 
-                    :value="score - 1"
-                    :disabled="isViewMode"
-                    class="sr-only"
-                  />
-                  <span class="text-lg font-bold text-center mb-1">{{ score - 1 }}</span>
-                  <span class="text-xs text-gray-600 text-center">{{ getQuantityLabel(score - 1) }}</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- C. 協助方式 -->
-            <div class="p-4 bg-purple-50 rounded-lg">
-              <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
-                <span class="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center mr-2 text-sm">C</span>
-                協助方式
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
-                <label 
-                  v-for="score in 5" 
-                  :key="score - 1"
-                  class="flex flex-col p-3 border-2 rounded-lg cursor-pointer transition-all"
-                  :class="goal.assistance === score - 1 ? 'border-purple-500 bg-purple-100' : 'border-gray-200 bg-white hover:border-purple-300'"
-                >
-                  <input 
-                    type="radio" 
-                    v-model.number="goal.assistance" 
-                    :value="score - 1"
-                    :disabled="isViewMode"
-                    class="sr-only"
-                  />
-                  <span class="text-lg font-bold text-center mb-1">{{ score - 1 }}</span>
-                  <span class="text-xs text-gray-600 text-center">{{ getAssistanceLabel(score - 1) }}</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- D. 反應程度 -->
-            <div class="p-4 bg-orange-50 rounded-lg">
-              <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
-                <span class="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center mr-2 text-sm">D</span>
-                反應程度
-              </h4>
-              <div class="grid grid-cols-1 sm:grid-cols-5 gap-3">
-                <label 
-                  v-for="score in 5" 
-                  :key="score - 1"
-                  class="flex flex-col p-3 border-2 rounded-lg cursor-pointer transition-all"
-                  :class="goal.response === score - 1 ? 'border-orange-500 bg-orange-100' : 'border-gray-200 bg-white hover:border-orange-300'"
-                >
-                  <input 
-                    type="radio" 
-                    v-model.number="goal.response" 
-                    :value="score - 1"
-                    :disabled="isViewMode"
-                    class="sr-only"
-                  />
-                  <span class="text-lg font-bold text-center mb-1">{{ score - 1 }}</span>
-                  <span class="text-xs text-gray-600 text-center">{{ getResponseLabel(score - 1) }}</span>
-                </label>
+              <!-- 評量表格 -->
+              <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead class="bg-gray-100">
+                    <tr>
+                      <th class="px-4 py-3 text-left font-semibold text-gray-700">評量時間</th>
+                      <th class="px-4 py-3 text-left font-semibold text-gray-700">起訖日期</th>
+                      <th class="px-4 py-3 text-center font-semibold text-blue-700">A-達成度</th>
+                      <th class="px-4 py-3 text-center font-semibold text-green-700">B-量</th>
+                      <th class="px-4 py-3 text-center font-semibold text-orange-700">C-協助</th>
+                      <th class="px-4 py-3 text-center font-semibold text-purple-700">D-反應</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200">
+                    <tr v-for="(point, pointIndex) in goal.evaluationPoints" :key="pointIndex" class="hover:bg-gray-50">
+                      <td class="px-4 py-3">
+                        <div class="font-medium text-gray-800">{{ point.type }}</div>
+                      </td>
+                      <td class="px-4 py-3">
+                        <UInput
+                          v-model="point.date"
+                          type="date"
+                          :disabled="isViewMode"
+                          size="sm"
+                        />
+                      </td>
+                      <td class="px-4 py-3">
+                        <USelect
+                          v-model.number="point.scoreA"
+                          :options="scoreOptions"
+                          :disabled="isViewMode"
+                          size="sm"
+                        />
+                      </td>
+                      <td class="px-4 py-3">
+                        <USelect
+                          v-model.number="point.scoreB"
+                          :options="scoreOptions"
+                          :disabled="isViewMode"
+                          size="sm"
+                        />
+                      </td>
+                      <td class="px-4 py-3">
+                        <USelect
+                          v-model.number="point.scoreC"
+                          :options="scoreOptions"
+                          :disabled="isViewMode"
+                          size="sm"
+                        />
+                      </td>
+                      <td class="px-4 py-3">
+                        <USelect
+                          v-model.number="point.scoreD"
+                          :options="scoreOptions"
+                          :disabled="isViewMode"
+                          size="sm"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
-        </UCard>
+        </div>
 
-        <UCard>
-          <template #footer>
-            <div class="flex justify-between">
+        <template #footer>
+          <div class="flex justify-between">
+            <UButton color="gray" size="lg" @click="prevStep">
+              <UIcon name="i-heroicons-arrow-left" class="mr-2" />
+              上一步
+            </UButton>
+            <UButton color="blue" size="lg" @click="nextStep">
+              下一步
+              <UIcon name="i-heroicons-arrow-right" class="ml-2" />
+            </UButton>
+          </div>
+        </template>
+      </UCard>
+
+      <!-- 步驟 5: 目標未達成原因與教學決定 -->
+      <UCard v-if="currentStep === 4" class="mb-6">
+        <template #header>
+          <div class="flex items-center space-x-2">
+            <UIcon name="i-heroicons-clipboard-document-check" class="w-5 h-5 text-blue-600" />
+            <h2 class="text-xl font-bold text-gray-800">目標未達成之原因 & 教學決定</h2>
+          </div>
+        </template>
+
+        <div class="space-y-8">
+          <div v-for="(domain, domainIndex) in formData.domains" :key="domainIndex" class="p-6 bg-gray-50 rounded-lg">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">{{ domain.domainName }}</h3>
+            
+            <div v-for="(goal, goalIndex) in domain.goals" :key="goalIndex" class="mb-6 last:mb-0 p-4 bg-white rounded-lg border border-gray-200">
+              <div class="mb-4">
+                <label class="block text-sm font-semibold text-gray-700 mb-1">目標 {{ goalIndex + 1 }}</label>
+                <p class="text-sm text-gray-600">{{ goal.shortTermGoal }}</p>
+              </div>
+
+              <!-- 目標達成狀態 -->
+              <div class="mb-6 pb-6 border-b border-gray-200">
+                <label class="block text-sm font-semibold text-gray-700 mb-3">目標達成狀態</label>
+                <div class="space-y-3">
+                  <label class="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      v-model="goal.goalAchieved" 
+                      :disabled="isViewMode"
+                      class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span class="text-sm">目標達成</span>
+                  </label>
+                  
+                  <label class="flex items-center space-x-2">
+                    <input 
+                      type="checkbox" 
+                      v-model="goal.goalNotAchieved" 
+                      :disabled="isViewMode"
+                      class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <span class="text-sm">目標未達成</span>
+                  </label>
+                  
+                  <div v-if="goal.goalNotAchieved" class="ml-6 mt-2">
+                    <label class="block text-xs text-gray-600 mb-1">未達成原因</label>
+                    <UTextarea 
+                      v-model="goal.notAchievedReason" 
+                      :disabled="isViewMode"
+                      :rows="3"
+                      placeholder="請說明目標未達成的原因..."
+                      size="sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- 教學決定 -->
+              <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-3">教學決定是否繼續？</label>
+                <div class="space-y-3">
+                  <label class="flex items-center space-x-2">
+                    <input 
+                      type="radio" 
+                      :name="`continue-${domainIndex}-${goalIndex}`"
+                      value="continue"
+                      v-model="goal.teachingDecision"
+                      :disabled="isViewMode"
+                      class="text-blue-600 focus:ring-blue-500"
+                    />
+                    <span class="text-sm">繼續</span>
+                  </label>
+                  
+                  <div v-if="goal.teachingDecision === 'continue'" class="ml-6 space-y-2">
+                    <label class="flex items-center space-x-2">
+                      <input 
+                        type="checkbox"
+                        v-model="goal.simplify"
+                        :disabled="isViewMode"
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span class="text-xs">簡化</span>
+                    </label>
+                    <label class="flex items-center space-x-2">
+                      <input 
+                        type="checkbox"
+                        v-model="goal.expand"
+                        :disabled="isViewMode"
+                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span class="text-xs">擴充</span>
+                    </label>
+                  </div>
+
+                  <label class="flex items-center space-x-2">
+                    <input 
+                      type="radio" 
+                      :name="`continue-${domainIndex}-${goalIndex}`"
+                      value="discontinue"
+                      v-model="goal.teachingDecision"
+                      :disabled="isViewMode"
+                      class="text-blue-600 focus:ring-blue-500"
+                    />
+                    <span class="text-sm">不繼續</span>
+                  </label>
+                  
+                  <div v-if="goal.teachingDecision === 'discontinue'" class="ml-6 mt-2">
+                    <label class="block text-xs text-gray-600 mb-1">不繼續的原因</label>
+                    <UTextarea 
+                      v-model="goal.discontinueReason" 
+                      :disabled="isViewMode"
+                      :rows="3"
+                      placeholder="請說明不繼續的原因..."
+                      size="sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <template #footer>
+          <div class="flex justify-between">
+            <UButton color="gray" size="lg" @click="isViewMode ? navigateTo('/evaluation-list') : prevStep()">
+              <UIcon name="i-heroicons-arrow-left" class="mr-2" />
+              {{ isViewMode ? '返回列表' : '上一步' }}
+            </UButton>
+            <div v-if="!isViewMode" class="flex gap-3">
               <UButton 
                 color="gray" 
-                variant="soft"
                 size="lg"
-                @click="isViewMode ? navigateTo('/evaluation-list') : prevStep()"
+                @click="submitForm"
+                :loading="isSubmitting"
               >
-                <UIcon name="i-heroicons-arrow-left" class="mr-2" />
-                {{ isViewMode ? '返回列表' : '上一步' }}
+                <UIcon name="i-heroicons-document" class="mr-2" />
+                儲存報告
               </UButton>
-              <div v-if="!isViewMode" class="flex gap-3">
-                <UButton 
-                  color="gray"
-                  size="lg"
-                  @click="saveDraft"
-                  :loading="isSaving"
-                >
-                  <UIcon name="i-heroicons-document" class="mr-2" />
-                  儲存草稿
-                </UButton>
-                <UButton 
-                  color="blue"
-                  size="lg"
-                  @click="submitForm"
-                  :loading="isSubmitting"
-                >
-                  <UIcon name="i-heroicons-check-circle" class="mr-2" />
-                  完成並提交
-                </UButton>
+              <UButton 
+                color="green" 
+                size="lg"
+                @click="exportForm"
+                :loading="isExporting"
+              >
+                <UIcon name="i-heroicons-arrow-down-tray" class="mr-2" />
+                {{ isExporting ? '匯出中...' : '匯出' }}
+              </UButton>
+            </div>
+          </div>
+        </template>
+      </UCard>
+
+      <!-- 評分說明 - 懸停顯示 -->
+      <div class="mt-6 flex justify-center">
+        <UPopover mode="hover" :popper="{ placement: 'top' }">
+          <UButton 
+            color="gray" 
+            variant="soft" 
+            size="lg"
+            icon="i-heroicons-information-circle"
+          >
+            評分標準說明
+          </UButton>
+
+          <template #panel>
+            <div class="p-6 bg-white rounded-lg shadow-xl max-w-4xl">
+              <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <UIcon name="i-heroicons-information-circle" class="mr-2 text-blue-600" />
+                評分標準說明
+              </h3>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <h4 class="font-bold text-blue-700 mb-2">A - 達成度</h4>
+                  <ul class="space-y-1 text-gray-600">
+                    <li>0: 0%</li>
+                    <li>1: 達成25%</li>
+                    <li>2: 達成50%</li>
+                    <li>3: 達成75%</li>
+                    <li>4: 達成100%</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="font-bold text-green-700 mb-2">B - 量</h4>
+                  <ul class="space-y-1 text-gray-600">
+                    <li>0: 0</li>
+                    <li>1: 完成1/4</li>
+                    <li>2: 完成2/4</li>
+                    <li>3: 完成3/4</li>
+                    <li>4: 全部完成</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="font-bold text-orange-700 mb-2">C - 協助方式</h4>
+                  <ul class="space-y-1 text-gray-600">
+                    <li>0: 完全協助</li>
+                    <li>1: 肢體協助</li>
+                    <li>2: 手勢指示</li>
+                    <li>3: 口頭提示</li>
+                    <li>4: 獨立完成</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="font-bold text-purple-700 mb-2">D - 反應程度</h4>
+                  <ul class="space-y-1 text-gray-600">
+                    <li>0: 無反應</li>
+                    <li>1: 1/4正確</li>
+                    <li>2: 2/4正確</li>
+                    <li>3: 3/4正確</li>
+                    <li>4: 全部正確</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </template>
-        </UCard>
+        </UPopover>
       </div>
 
     </div>
@@ -589,7 +572,7 @@
 </template>
 
 <script setup lang="ts">
-import { collection, addDoc, updateDoc, doc, getDoc, query, where, getDocs, getFirestore, serverTimestamp } from 'firebase/firestore'
+import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, serverTimestamp, getFirestore } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 import { useAuth } from '~/composables/useAuth'
 
@@ -598,82 +581,100 @@ const route = useRoute()
 
 // 取得 Firestore 實例
 const getDb = () => {
-  const app = getApp()
-  return getFirestore(app)
+  return getFirestore(getApp())
 }
 
+// 狀態管理
+const isViewMode = ref(!!route.query.view)
+const editingFormId = ref<string | null>(route.query.edit as string || route.query.view as string || null)
+const isSaving = ref(false)
+const isSubmitting = ref(false)
+const isImporting = ref(false)
+const isExporting = ref(false)
+const hasImported = ref(false)
+
 // 步驟定義
-const steps = ['基本資訊', '選擇目標', '教學決定', '成效評量']
+const steps = ref(['匯入目標', '執行情境', '教學時間', '成效評量', '目標未達成原因與教學決定'])
 const currentStep = ref(0)
 
-// URL 參數
-const editingFormId = computed(() => route.query.edit as string)
-const isViewMode = computed(() => !!route.query.view)
-const isNewForm = computed(() => route.query.new === 'true')
+// ISP 表單選項
+const ispFormOptions = ref<Array<{ label: string; value: string }>>([])
+const selectedIspForm = ref<string>('')
 
 // 表單資料
 const formData = ref({
   studentName: '',
-  evaluationDate: '',
-  evaluatorName: '',
+  sessionNumber: '' as string | number,
   startDate: '',
   endDate: '',
-  goals: [] as Array<{
-    id: string
-    goalText: string
-    source: 'isp' | 'manual'
-    ispGoalId?: string
-    learningStatus: string
-    continueTeaching: 'yes' | 'no' | 'other' | ''
-    otherNotes: string
-    achievement: 0 | 1 | 2 | 3 | 4
-    quantity: 0 | 1 | 2 | 3 | 4
-    assistance: 0 | 1 | 2 | 3 | 4
-    response: 0 | 1 | 2 | 3 | 4
-    totalScore: number
+  designer: '',
+  executor: '',
+  domains: [] as Array<{
+    domainName: string
+    domainId: string
+    goals: Array<{
+      longTermGoal: string
+      shortTermGoal: string
+      executionContexts: string[]
+      evaluationPoints: Array<{
+        type: string
+        date: string
+        scoreA: number
+        scoreB: number
+        scoreC: number
+        scoreD: number
+      }>
+      goalAchieved: boolean
+      achievedDate: string
+      goalNotAchieved: boolean
+      notAchievedReason: string
+      teachingDecision: 'continue' | 'discontinue' | ''
+      simplify: boolean
+      expand: boolean
+      discontinueReason: string
+    }>
   }>
 })
 
-// ISP 匯入相關
-const ispFormOptions = ref<Array<{ label: string; value: string }>>([])
-const selectedIspForm = ref('')
-const isImporting = ref(false)
+// 執行情境選項
+const executionContexts = ['個別', '角落', '小組', '團體', '體能', '隨機']
 
-// 狀態
-const isSaving = ref(false)
-const isSubmitting = ref(false)
+// 評分選項 (0-4)
+const scoreOptions = [
+  { label: '0', value: 0 },
+  { label: '1', value: 1 },
+  { label: '2', value: 2 },
+  { label: '3', value: 3 },
+  { label: '4', value: 4 }
+]
 
-// 計算總分
-const calculateTotalScore = (goal: any) => {
-  return (goal.achievement || 0) + (goal.quantity || 0) + (goal.assistance || 0) + (goal.response || 0)
+// 領域名稱映射
+const domainNameMap: Record<string, string> = {
+  sensory: '感官知覺領域',
+  grossMotor: '粗大動作領域',
+  fineMotor: '精細動作領域',
+  selfCare: '生活自理領域',
+  language: '語言溝通領域',
+  cognitive: '認知領域',
+  social: '社會適應領域'
 }
 
-// 監聽評分變化，自動計算總分
-watch(() => formData.value.goals, (goals) => {
-  goals.forEach(goal => {
-    goal.totalScore = calculateTotalScore(goal)
-  })
-}, { deep: true })
+// 計算總目標數
+const totalGoals = computed(() => {
+  return formData.value.domains.reduce((sum, domain) => sum + domain.goals.length, 0)
+})
 
-// 評分標籤
-const getAchievementLabel = (score: number) => {
-  const labels = ['0%', '25%', '50%', '75%', '100%']
-  return labels[score] || ''
+// 步驟控制
+const nextStep = () => {
+  if (currentStep.value < steps.value.length - 1) {
+    currentStep.value++
+  }
 }
 
-const getQuantityLabel = (score: number) => {
-  const labels = ['0', '1/4', '2/4', '3/4', '全部']
-  return labels[score] || ''
-}
-
-const getAssistanceLabel = (score: number) => {
-  const labels = ['完全協助', '肢體協助', '手勢指示', '口頭提示', '獨立完成']
-  return labels[score] || ''
-}
-
-const getResponseLabel = (score: number) => {
-  const labels = ['無反應', '1/4正確', '2/4正確', '3/4正確', '全部正確']
-  return labels[score] || ''
+const prevStep = () => {
+  if (currentStep.value > 0) {
+    currentStep.value--
+  }
 }
 
 // 載入 ISP 表單選項
@@ -691,7 +692,7 @@ const loadIspForms = async () => {
     ispFormOptions.value = querySnapshot.docs.map(doc => {
       const data = doc.data()
       return {
-        label: `${data.studentName} - ${data.startDate || ''} ~ ${data.endDate || ''}`,
+        label: `${data.studentName} - 第${data.sessionNumber}次 (${data.startDate || ''} ~ ${data.endDate || ''})`,
         value: doc.id
       }
     })
@@ -713,65 +714,56 @@ const importFromIsp = async () => {
     if (docSnap.exists()) {
       const data = docSnap.data()
       
+      // 匯入基本資訊
+      formData.value.studentName = data.studentName || ''
+      formData.value.sessionNumber = data.sessionNumber || ''
+      formData.value.startDate = data.startDate || ''
+      formData.value.endDate = data.endDate || ''
+      
       // 從 ISP 的 domains 中提取所有目標
       const domains = data.domains || {}
-      const importedGoals: any[] = []
+      const selectedDomains = data.selectedDomains || []
+      formData.value.domains = []
 
-      Object.keys(domains).forEach(domainId => {
-        const domain = domains[domainId]
-        const confirmedGoals = domain.confirmed || {}
+      selectedDomains.forEach((domainId: string) => {
+        const domainData = domains[domainId]
+        if (!domainData?.confirmed) return
 
-        // 匯入長程目標
-        if (confirmedGoals.longTerms && Array.isArray(confirmedGoals.longTerms)) {
-          confirmedGoals.longTerms.forEach((goalText: string) => {
-            if (goalText && goalText.trim()) {
-              importedGoals.push({
-                id: `isp-${Date.now()}-${Math.random()}`,
-                goalText: goalText,
-                source: 'isp' as const,
-                ispGoalId: `${domainId}-long-${goalText}`,
-                learningStatus: '',
-                continueTeaching: '' as const,
-                otherNotes: '',
-                achievement: 0 as const,
-                quantity: 0 as const,
-                assistance: 0 as const,
-                response: 0 as const,
-                totalScore: 0
-              })
-            }
-          })
-        }
+        const confirmedData = domainData.confirmed
+        const longTermGoals = confirmedData.longTerms || []
+        const shortTermGoals = confirmedData.shortTerms || []
 
-        // 匯入短程目標
-        if (confirmedGoals.shortTerms && Array.isArray(confirmedGoals.shortTerms)) {
-          confirmedGoals.shortTerms.forEach((goalText: string) => {
-            if (goalText && goalText.trim()) {
-              importedGoals.push({
-                id: `isp-${Date.now()}-${Math.random()}`,
-                goalText: goalText,
-                source: 'isp' as const,
-                ispGoalId: `${domainId}-short-${goalText}`,
-                learningStatus: '',
-                continueTeaching: '' as const,
-                otherNotes: '',
-                achievement: 0 as const,
-                quantity: 0 as const,
-                assistance: 0 as const,
-                response: 0 as const,
-                totalScore: 0
-              })
-            }
+        // 創建目標列表，為每個目標創建3個評量時間點：教學前、教學後、目標達成日
+        const goals = shortTermGoals.map((shortTerm: string, index: number) => ({
+          longTermGoal: longTermGoals[Math.floor(index / (shortTermGoals.length / longTermGoals.length))] || longTermGoals[0] || '',
+          shortTermGoal: shortTerm,
+          executionContexts: [],
+          evaluationPoints: [
+            { type: '教學前', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 },
+            { type: '教學後', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 },
+            { type: '目標達成日', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 }
+          ],
+          goalAchieved: false,
+          achievedDate: '',
+          goalNotAchieved: false,
+          notAchievedReason: '',
+          teachingDecision: '',
+          simplify: false,
+          expand: false,
+          discontinueReason: ''
+        }))
+
+        if (goals.length > 0) {
+          formData.value.domains.push({
+            domainName: domainNameMap[domainId] || domainId,
+            domainId: domainId,
+            goals: goals
           })
         }
       })
 
-      if (importedGoals.length > 0) {
-        formData.value.goals.push(...importedGoals)
-        alert(`成功匯入 ${importedGoals.length} 個目標`)
-      } else {
-        alert('該 ISP 表單中沒有可匯入的目標')
-      }
+      hasImported.value = true
+      alert(`成功匯入 ${formData.value.domains.length} 個領域的目標！`)
     }
   } catch (error) {
     console.error('匯入失敗:', error)
@@ -781,108 +773,24 @@ const importFromIsp = async () => {
   }
 }
 
-// 手動新增目標
-const addManualGoal = () => {
-  formData.value.goals.push({
-    id: `manual-${Date.now()}`,
-    goalText: '',
-    source: 'manual',
-    learningStatus: '',
-    continueTeaching: '',
-    otherNotes: '',
-    achievement: 0,
-    quantity: 0,
-    assistance: 0,
-    response: 0,
-    totalScore: 0
-  })
-}
-
-// 移除目標
-const removeGoal = (index: number) => {
-  formData.value.goals.splice(index, 1)
-}
-
-// 步驟導航
-const nextStep = () => {
-  if (currentStep.value < steps.length - 1) {
-    currentStep.value++
-  }
-}
-
-const prevStep = () => {
-  if (currentStep.value > 0) {
-    currentStep.value--
-  }
-}
-
-// 儲存草稿
-const saveDraft = async () => {
-  try {
-    isSaving.value = true
-    const db = getDb()
-
-    const formDataToSave: any = {
-      userId: user.value?.uid,
-      ...formData.value,
-      updatedAt: serverTimestamp()
-    }
-
-    if (editingFormId.value) {
-      // 更新現有表單
-      await updateDoc(doc(db, 'evaluation_forms', editingFormId.value), formDataToSave)
-      alert('草稿已儲存')
-    } else {
-      // 建立新表單
-      formDataToSave.createdAt = serverTimestamp()
-      const docRef = await addDoc(collection(db, 'evaluation_forms'), formDataToSave)
-      // 更新 URL 為編輯模式
-      navigateTo(`/evaluation-form?edit=${docRef.id}`, { replace: true })
-      alert('草稿已儲存')
-    }
-  } catch (error) {
-    console.error('儲存失敗:', error)
-    alert('儲存失敗，請稍後再試')
-  } finally {
-    isSaving.value = false
-  }
-}
-
-// 提交表單
+// 提交表單（儲存報告）
 const submitForm = async () => {
   // 驗證
-  if (!formData.value.studentName || !formData.value.evaluationDate || !formData.value.evaluatorName) {
-    alert('請填寫所有必填的基本資訊')
-    currentStep.value = 0
+  if (!formData.value.studentName) {
+    alert('請輸入幼生/學童姓名')
     return
   }
-
-  if (formData.value.goals.length === 0) {
-    alert('請至少新增一個評鑑目標')
-    currentStep.value = 1
+  if (!formData.value.sessionNumber) {
+    alert('請輸入第幾次')
     return
   }
-
-  // 檢查所有目標是否填寫完整
-  for (let i = 0; i < formData.value.goals.length; i++) {
-    const goal = formData.value.goals[i]
-    if (!goal) continue
-    
-    if (!goal.goalText.trim()) {
-      alert(`請填寫目標 ${i + 1} 的內容`)
-      currentStep.value = 1
-      return
-    }
-    if (!goal.learningStatus.trim()) {
-      alert(`請填寫目標 ${i + 1} 的學習情形`)
-      currentStep.value = 2
-      return
-    }
-    if (!goal.continueTeaching) {
-      alert(`請選擇目標 ${i + 1} 是否延續教學`)
-      currentStep.value = 2
-      return
-    }
+  if (!formData.value.startDate || !formData.value.endDate) {
+    alert('請輸入執行期間')
+    return
+  }
+  if (formData.value.domains.length === 0) {
+    alert('請至少新增一個評量目標')
+    return
   }
 
   try {
@@ -899,20 +807,71 @@ const submitForm = async () => {
       await updateDoc(doc(db, 'evaluation_forms', editingFormId.value), formDataToSave)
     } else {
       formDataToSave.createdAt = serverTimestamp()
-      await addDoc(collection(db, 'evaluation_forms'), formDataToSave)
+      const docRef = await addDoc(collection(db, 'evaluation_forms'), formDataToSave)
+      editingFormId.value = docRef.id
     }
 
-    alert('評鑑記錄已提交')
+    alert('評鑑記錄已儲存')
     navigateTo('/evaluation-list')
   } catch (error) {
-    console.error('提交失敗:', error)
-    alert('提交失敗，請稍後再試')
+    console.error('儲存失敗:', error)
+    alert('儲存失敗，請稍後再試')
   } finally {
     isSubmitting.value = false
   }
 }
 
-// 載入表單資料
+// 匯出評鑑報告
+const exportForm = async () => {
+  // 先儲存
+  if (!formData.value.studentName) {
+    alert('請輸入幼生/學童姓名')
+    return
+  }
+  if (!formData.value.sessionNumber) {
+    alert('請輸入第幾次')
+    return
+  }
+  if (!formData.value.startDate || !formData.value.endDate) {
+    alert('請輸入執行期間')
+    return
+  }
+  if (formData.value.domains.length === 0) {
+    alert('請至少新增一個評量目標')
+    return
+  }
+
+  try {
+    isExporting.value = true
+    const db = getDb()
+
+    const formDataToSave: any = {
+      userId: user.value?.uid,
+      ...formData.value,
+      updatedAt: serverTimestamp()
+    }
+
+    // 先保存到 Firestore
+    if (editingFormId.value) {
+      await updateDoc(doc(db, 'evaluation_forms', editingFormId.value), formDataToSave)
+    } else {
+      formDataToSave.createdAt = serverTimestamp()
+      const docRef = await addDoc(collection(db, 'evaluation_forms'), formDataToSave)
+      editingFormId.value = docRef.id
+    }
+
+    // TODO: 實作 Word 匯出功能
+    alert('評鑑記錄已儲存！Word 匯出功能開發中...')
+    navigateTo('/evaluation-list')
+  } catch (error) {
+    console.error('匯出失敗:', error)
+    alert('匯出失敗，請稍後再試')
+  } finally {
+    isExporting.value = false
+  }
+}
+
+// 載入表單
 const loadForm = async (formId: string) => {
   try {
     const db = getDb()
@@ -923,15 +882,17 @@ const loadForm = async (formId: string) => {
       const data = docSnap.data()
       formData.value = {
         studentName: data.studentName || '',
-        evaluationDate: data.evaluationDate || '',
-        evaluatorName: data.evaluatorName || '',
+        sessionNumber: data.sessionNumber || '',
         startDate: data.startDate || '',
         endDate: data.endDate || '',
-        goals: data.goals || []
+        designer: data.designer || '',
+        executor: data.executor || '',
+        domains: data.domains || []
       }
-    } else {
-      alert('找不到該評鑑記錄')
-      navigateTo('/evaluation-list')
+      hasImported.value = true
+      if (isViewMode.value) {
+        currentStep.value = 0 // 查看模式從第一步開始
+      }
     }
   } catch (error) {
     console.error('載入失敗:', error)
@@ -939,12 +900,12 @@ const loadForm = async (formId: string) => {
   }
 }
 
-// 頁面載入時執行
+// 頁面載入
 onMounted(async () => {
   await loadIspForms()
 
-  if (editingFormId.value || route.query.view) {
-    const formId = (editingFormId.value || route.query.view) as string
+  if (route.query.edit || route.query.view) {
+    const formId = (route.query.edit || route.query.view) as string
     await loadForm(formId)
   }
 })

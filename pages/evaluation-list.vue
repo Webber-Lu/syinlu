@@ -133,13 +133,13 @@
               </UButton>
               
               <UButton 
-                color="gray" 
+                color="green" 
                 variant="soft"
                 size="sm"
-                @click="viewForm(evaluation.id)"
+                @click="exportForm(evaluation.id)"
               >
-                <UIcon name="i-heroicons-eye" class="mr-1" />
-                檢視
+                <UIcon name="i-heroicons-arrow-down-tray" class="mr-1" />
+                匯出
               </UButton>
 
               <UButton 
@@ -314,9 +314,10 @@ const editForm = (formId: string) => {
   navigateTo(`/evaluation-form?edit=${formId}`)
 }
 
-// 檢視評鑑記錄
-const viewForm = (formId: string) => {
-  navigateTo(`/evaluation-form?view=${formId}`)
+// 匯出評鑑記錄
+const exportForm = async (formId: string) => {
+  // TODO: 實作 Word 匯出功能
+  alert('Word 匯出功能開發中...')
 }
 
 // 確認刪除
