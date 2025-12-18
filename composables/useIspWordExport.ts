@@ -18,78 +18,224 @@ export const useIspWordExport = () => {
     return domainMap[domainId] || domainId
   }
 
+  type Stage = 'initial' | 'confirmed'
+
+  // 將單一 stage 的 goals 轉成「多列」：(longTerm, shortTerm) 一列一列
+  // 規則：
+  // - 每個 shortTerm 各自一列（才會有表格分隔線）
+  // - 同一個 longTerm 只在第一個 shortTerm 那列顯示，其他列 longTerm 留空
+  // - 若只有 longTerm 沒 shortTerms，也要至少產生一列
+  // - 加上編號：長程目標 1, 2, 3... 短程目標 1.1, 1.2, 2.1, 2.2...
+  const expandStageGoalsToRows = (stageData: any) => {
+    // 新格式：goals: [{ longTerm, shortTerms: [] }]
+    if (stageData?.goals && Array.isArray(stageData.goals)) {
+      const rows: { longTerm: string; shortTerm: string }[] = []
+
+      stageData.goals.forEach((goalSet: any, goalIndex: number) => {
+        const longTerm = (goalSet?.longTerm || '').trim()
+        const shortTerms: string[] = Array.isArray(goalSet?.shortTerms) ? goalSet.shortTerms : []
+        const longTermNumber = goalIndex + 1
+
+        // 沒短程：但有長程 → 給一列（加上編號）
+        if (!shortTerms || shortTerms.length === 0) {
+          if (longTerm) {
+            rows.push({ 
+              longTerm: `${longTermNumber}. ${longTerm}`, 
+              shortTerm: '' 
+            })
+          }
+          return
+        }
+
+        // 有短程：每條短程一列（加上編號）
+        shortTerms.forEach((st: string, shortIndex: number) => {
+          const shortTerm = (st || '').trim()
+          if (!shortTerm && !longTerm) return
+          
+          const shortTermNumber = `${longTermNumber}.${shortIndex + 1}`
+          
+          rows.push({
+            // 只在第一列顯示長程目標（含編號）
+            longTerm: shortIndex === 0 ? `${longTermNumber}. ${longTerm}` : '', 
+            // 短程目標加上編號
+            shortTerm: shortTerm ? `${shortTermNumber} ${shortTerm}` : ''
+          })
+        })
+      })
+
+      return rows.length > 0 ? rows : [{ longTerm: '(未填寫)', shortTerm: '' }]
+    }
+
+    // 舊格式：longTerms:[], shortTerms:[]
+    // 這裡給一個「保守可用」的展平方式：
+    // - 先把 longTerms 變成列（shortTerm 空）加上編號 1, 2, 3...
+    // - 再把 shortTerms 也各自變成列（longTerm 空）加上編號 1, 2, 3...
+    const longTerms = Array.isArray(stageData?.longTerms) ? stageData.longTerms : []
+    const shortTerms = Array.isArray(stageData?.shortTerms) ? stageData.shortTerms : []
+
+    const rows: { longTerm: string; shortTerm: string }[] = []
+
+    longTerms
+      .filter((x: any) => typeof x === 'string' && x.trim())
+      .forEach((lt: string, index: number) => {
+        rows.push({ 
+          longTerm: `${index + 1}. ${lt.trim()}`, 
+          shortTerm: '' 
+        })
+      })
+
+    shortTerms
+      .filter((x: any) => typeof x === 'string' && x.trim())
+      .forEach((st: string, index: number) => {
+        rows.push({ 
+          longTerm: '', 
+          shortTerm: `${index + 1}. ${st.trim()}` 
+        })
+      })
+
+    return rows.length > 0 ? rows : [{ longTerm: '(未填寫)', shortTerm: '' }]
+  }
+
   const generateIspWord = async (ispData: any) => {
     try {
-      // 確保只在客戶端執行
       if (import.meta.server) {
         throw new Error('此功能只能在瀏覽器中使用')
       }
 
-      // 1. 從 public/templates 讀取模板
+      // 1) 讀模板
       const templateResponse = await fetch('/templates/ISP_template.docx')
-      
       if (!templateResponse.ok) {
         throw new Error(`無法載入模板檔案: ${templateResponse.status} ${templateResponse.statusText}`)
       }
 
-      // 2. 轉換為 Uint8Array 格式
       const arrayBuffer = await templateResponse.arrayBuffer()
       const templateBuffer = new Uint8Array(arrayBuffer)
 
       console.log('模板載入成功', templateBuffer.byteLength, 'bytes')
-
-      // 3. 準備資料 - 將領域物件轉換為陣列
       console.log('🔍 原始 Firebase 資料:', ispData)
       console.log('🔍 選擇的領域:', ispData.selectedDomains)
       console.log('🔍 所有領域資料:', ispData.domains)
 
+      // 2) domainsArray：保留（你模板其他區塊若仍用 domains）
       const domainsArray = (ispData.selectedDomains || []).map((domainId: string) => {
-        const domainData = ispData.domains[domainId]
+        const domainData = ispData.domains?.[domainId]
 
-        console.log(`\n📋 處理領域: ${domainId}`)
-        console.log('  - 領域資料:', domainData)
-        console.log('  - 初擬長期目標:', domainData?.initial?.longTerms)
-        console.log('  - 初擬短期目標:', domainData?.initial?.shortTerms)
-        console.log('  - 確認長期目標:', domainData?.confirmed?.longTerms)
-        console.log('  - 確認短期目標:', domainData?.confirmed?.shortTerms)
+        // 仍沿用你原本「join('\n')」的彙整字串（可留著）
+        const formatGoalsDataToText = (stage: Stage) => {
+          const stageData = domainData?.[stage]
 
-        // 將陣列格式化為編號列表字串
-        const formatGoals = (goals: string[] | undefined): string => {
-          if (!goals || goals.length === 0) return '(未填寫)'
-          return goals
-            .filter(g => g && g.trim())
-            .map((goal, index) => `${index + 1}. ${goal}`)
-            .join('\n') || '(未填寫)'
+          if (stageData?.goals && Array.isArray(stageData.goals)) {
+            const longTermsList: string[] = []
+            const shortTermsList: string[] = []
+
+            stageData.goals.forEach((goalSet: any, index: number) => {
+              if (goalSet.longTerm && goalSet.longTerm.trim()) {
+                longTermsList.push(`${index + 1}. ${goalSet.longTerm}`)
+              }
+              if (goalSet.shortTerms && Array.isArray(goalSet.shortTerms)) {
+                goalSet.shortTerms.forEach((shortTerm: string, shortIndex: number) => {
+                  if (shortTerm && shortTerm.trim()) {
+                    shortTermsList.push(`${index + 1}.${shortIndex + 1} ${shortTerm}`)
+                  }
+                })
+              }
+            })
+
+            return {
+              longTerm: longTermsList.length > 0 ? longTermsList.join('\n') : '(未填寫)',
+              shortTerm: shortTermsList.length > 0 ? shortTermsList.join('\n') : '(未填寫)'
+            }
+          }
+
+          const formatGoals = (goals: any): string => {
+            if (!goals) return '(未填寫)'
+            const goalsArray = Array.isArray(goals) ? goals : Array.from(goals || [])
+            if (goalsArray.length === 0) return '(未填寫)'
+            return (
+              goalsArray
+                .filter((g: any) => g && typeof g === 'string' && g.trim())
+                .map((goal: string, index: number) => `${index + 1}. ${goal}`)
+                .join('\n') || '(未填寫)'
+            )
+          }
+
+          return {
+            longTerm: formatGoals(stageData?.longTerms),
+            shortTerm: formatGoals(stageData?.shortTerms)
+          }
         }
 
+        const initialData = formatGoalsDataToText('initial')
+        const confirmedData = formatGoalsDataToText('confirmed')
+
         return {
-          domainId: domainId,
+          domainId,
           domainName: getDomainName(domainId),
-          // 巢狀結構（給 {{initial.longTerm}} 用）
-          initial: {
-            longTerm: formatGoals(domainData?.initial?.longTerms),
-            shortTerm: formatGoals(domainData?.initial?.shortTerms)
-          },
-          confirmed: {
-            longTerm: formatGoals(domainData?.confirmed?.longTerms),
-            shortTerm: formatGoals(domainData?.confirmed?.shortTerms)
-          },
-          // 扁平化結構（給 {{initialLongTerm}} 用，如果 Word 不支援點號）
-          initialLongTerm: formatGoals(domainData?.initial?.longTerms),
-          initialShortTerm: formatGoals(domainData?.initial?.shortTerms),
-          confirmedLongTerm: formatGoals(domainData?.confirmed?.longTerms),
-          confirmedShortTerm: formatGoals(domainData?.confirmed?.shortTerms)
+          initial: initialData,
+          confirmed: confirmedData,
+          initialLongTerm: initialData.longTerm,
+          initialShortTerm: initialData.shortTerm,
+          confirmedLongTerm: confirmedData.longTerm,
+          confirmedShortTerm: confirmedData.shortTerm
         }
       })
 
+      // 3) ✅ goalRows：用來「表格一列一目標」
+      const goalRows: Array<{
+        domainName: string
+        initialLongTerm: string
+        initialShortTerm: string
+        confirmedLongTerm: string
+        confirmedShortTerm: string
+      }> = []
+
+      ;(ispData.selectedDomains || []).forEach((domainId: string) => {
+        const domainData = ispData.domains?.[domainId]
+        const domainName = getDomainName(domainId)
+
+        const initRows = expandStageGoalsToRows(domainData?.initial)
+        const confRows = expandStageGoalsToRows(domainData?.confirmed)
+
+        const maxLen = Math.max(initRows.length, confRows.length)
+
+        for (let i = 0; i < maxLen; i++) {
+          goalRows.push({
+            // 只在第一列顯示領域名稱，後續列空白（看起來像合併，但仍有分隔線）
+            domainName: i === 0 ? domainName : '',
+            initialLongTerm: initRows[i]?.longTerm ?? '',
+            initialShortTerm: initRows[i]?.shortTerm ?? '',
+            confirmedLongTerm: confRows[i]?.longTerm ?? '',
+            confirmedShortTerm: confRows[i]?.shortTerm ?? ''
+          })
+        }
+      })
+
+      // 若真的完全沒有資料，也至少給一列避免模板空迴圈
+      if (goalRows.length === 0) {
+        goalRows.push({
+          domainName: '(未選擇領域)',
+          initialLongTerm: '',
+          initialShortTerm: '',
+          confirmedLongTerm: '',
+          confirmedShortTerm: ''
+        })
+      }
+
+      // 4) data：把 goalRows 丟進去
       const data = {
         studentName: ispData.studentName || '',
         sessionNumber: ispData.sessionNumber || '',
         startDate: ispData.startDate || '',
         endDate: ispData.endDate || '',
         planner: ispData.planner || '',
+
+        // 舊的 domains 還在（你若模板不再用 domains，可以刪掉）
         domains: domainsArray,
-        submittedAt: ispData.submittedAt 
+
+        // ✅ 新增：模板表格用它做 row loop
+        goalRows,
+
+        submittedAt: ispData.submittedAt
           ? new Date(ispData.submittedAt.toDate()).toLocaleString('zh-TW', {
               year: 'numeric',
               month: '2-digit',
@@ -108,18 +254,14 @@ export const useIspWordExport = () => {
 
       console.log('\n✅ 最終準備的資料:', JSON.stringify(data, null, 2))
 
-      // 4. 使用 Docxtemplater 填充模板
+      // 5) Docxtemplater render
       const zip = new PizZip(templateBuffer)
       const doc = new Docxtemplater(zip, {
         paragraphLoop: true,
         linebreaks: true,
-        delimiters: {
-          start: '{{',
-          end: '}}'
-        }
+        delimiters: { start: '{{', end: '}}' }
       }) as any
 
-      // 設置資料並渲染文件
       try {
         await doc.renderAsync(data)
         console.log('文件渲染完成')
@@ -134,15 +276,12 @@ export const useIspWordExport = () => {
         throw error
       }
 
-      // 5. 生成新的 Word 文件
+      // 6) generate + download
       const output = doc.getZip().generate({
         type: 'uint8array',
         mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       })
 
-      console.log('文件生成成功')
-
-      // 6. 下載檔案
       const fileName = `ISP_${ispData.studentName}_第${ispData.sessionNumber}次.docx`
       saveAs(
         new Blob([output], {
@@ -153,11 +292,9 @@ export const useIspWordExport = () => {
 
       console.log('檔案下載完成:', fileName)
       return true
-
     } catch (err: any) {
       console.error('生成 Word 文件失敗:', err)
 
-      // 詳細的錯誤處理
       let errorMessage = '生成文件時發生錯誤: ' + err.message
 
       if (err.message.includes('template') || err.message.includes('模板')) {
