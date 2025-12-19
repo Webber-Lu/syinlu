@@ -16,70 +16,26 @@
     <!-- 已登入狀態 -->
     <div v-else class="min-h-screen">
       <!-- 導航欄 -->
-      <div class="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div class="flex justify-between items-center h-16">
-            <!-- Logo 區 -->
-            <div class="flex items-center space-x-6">
-              <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
-                  <span class="text-2xl">🌿</span>
-                </div>
-                <span class="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">心路基金會</span>
-              </div>
-
-              <!-- 導航按鈕 -->
-              <div class="hidden md:flex items-center space-x-2">
-                <UButton 
-                  color="green" 
-                  variant="solid"
-                  size="sm"
-                  @click="navigateTo('/home')"
-                >
-                  <UIcon name="i-heroicons-home" class="mr-1" />
-                  首頁
-                </UButton>
-                <UButton 
-                  color="gray" 
-                  variant="soft"
-                  size="sm"
-                  @click="navigateTo('/isp-list')"
-                >
-                  <UIcon name="i-heroicons-document-text" class="mr-1" />
-                  ISP 表單
-                </UButton>
-                <UButton 
-                  color="gray" 
-                  variant="soft"
-                  size="sm"
-                  @click="navigateTo('/evaluation-list')"
-                >
-                  <UIcon name="i-heroicons-chart-bar" class="mr-1" />
-                  教育治療評鑑
-                </UButton>
-              </div>
-            </div>
-
-            <!-- 使用者區 -->
-            <div class="flex items-center space-x-4">
-              <UAvatar 
-                :text="getUserInitial()" 
-                size="sm"
-                :ui="{ background: 'bg-gradient-to-br from-green-400 to-emerald-500' }"
-              />
-              <span class="text-gray-700 font-medium hidden sm:inline">{{ user.displayName || user.email }}</span>
-              <UButton 
-                color="red" 
-                variant="soft" 
-                @click="handleLogout"
-                :loading="isLoading"
-              >
-                {{ isLoading ? '登出中...' : '登出' }}
-              </UButton>
-            </div>
+      <Menubar>
+        <template #user-section>
+          <div class="flex items-center space-x-4">
+            <UAvatar 
+              :text="getUserInitial()" 
+              size="sm"
+              :ui="{ background: 'bg-gradient-to-br from-green-400 to-emerald-500' }"
+            />
+            <span class="text-gray-700 font-medium hidden sm:inline">{{ user.displayName || user.email }}</span>
+            <UButton 
+              color="red" 
+              variant="soft" 
+              @click="handleLogout"
+              :loading="isLoading"
+            >
+              {{ isLoading ? '登出中...' : '登出' }}
+            </UButton>
           </div>
-        </div>
-      </div>
+        </template>
+      </Menubar>
 
       <!-- 主要內容 -->
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
