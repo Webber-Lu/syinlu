@@ -147,26 +147,45 @@
         </template>
 
         <div class="space-y-8">
-          <div v-for="(domain, domainIndex) in formData.domains" :key="domainIndex" class="p-6 bg-gray-50 rounded-lg">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">{{ domain.domainName }}</h3>
+          <div v-for="(domain, domainIndex) in groupedDomains" :key="domainIndex" class="p-6 bg-gray-50 rounded-lg">
+            <h3 class="text-lg font-bold text-gray-800 mb-6">{{ domain.domainName }}</h3>
             
-            <div v-for="(goal, goalIndex) in domain.goals" :key="goalIndex" class="mb-6 last:mb-0">
-              <div class="mb-3">
-                <label class="block text-sm font-semibold text-gray-700 mb-1">目標 {{ goalIndex + 1 }}</label>
-                <p class="text-sm text-gray-600">{{ goal.shortTermGoal }}</p>
+            <!-- 按長程目標分組 -->
+            <div v-for="(group, groupIndex) in domain.groupedGoals" :key="groupIndex" class="mb-8 last:mb-0">
+              <!-- 長程目標標題 -->
+              <div class="mb-4 pb-2 border-b-2 border-indigo-200">
+                <div class="flex items-start space-x-2">
+                  <UBadge color="indigo" size="sm">長程目標 {{ groupIndex + 1 }}</UBadge>
+                  <p class="text-base font-semibold text-indigo-900 flex-1">{{ group.longTermGoal }}</p>
+                </div>
               </div>
               
-              <div class="flex flex-wrap gap-3">
-                <label v-for="context in executionContexts" :key="context" class="flex items-center space-x-2 px-4 py-2 bg-white border-2 rounded-lg cursor-pointer transition-all hover:border-blue-300" :class="goal.executionContexts.includes(context) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'">
-                  <input 
-                    type="checkbox" 
-                    :value="context" 
-                    v-model="goal.executionContexts"
-                    :disabled="isViewMode"
-                    class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                  />
-                  <span class="text-sm font-medium">{{ context }}</span>
-                </label>
+              <!-- 該長程目標下的所有短程目標 -->
+              <div class="space-y-4 ml-6">
+                <div v-for="(goal, goalIndex) in group.shortTermGoals" :key="goalIndex" class="p-4 bg-white rounded-lg border-l-4 border-blue-400 shadow-sm">
+                  <div class="mb-3">
+                    <div class="flex items-start space-x-2 mb-2">
+                      <UBadge color="blue" variant="soft" size="sm">短程 {{ groupIndex + 1 }}.{{ goalIndex + 1 }}</UBadge>
+                    </div>
+                    <p class="text-sm text-gray-700">{{ goal.shortTermGoal }}</p>
+                  </div>
+                  
+                  <div>
+                    <label class="block text-xs font-semibold text-gray-700 mb-2">執行情境</label>
+                    <div class="flex flex-wrap gap-2">
+                      <label v-for="context in executionContexts" :key="context" class="flex items-center space-x-2 px-3 py-1.5 bg-gray-50 border-2 rounded-lg cursor-pointer transition-all hover:border-blue-300 text-xs" :class="goal.executionContexts.includes(context) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'">
+                        <input 
+                          type="checkbox" 
+                          :value="context" 
+                          v-model="goal.executionContexts"
+                          :disabled="isViewMode"
+                          class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span class="font-medium">{{ context }}</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -261,16 +280,30 @@
         </template>
 
         <div class="space-y-8">
-          <div v-for="(domain, domainIndex) in formData.domains" :key="domainIndex" class="p-6 bg-gray-50 rounded-lg">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">{{ domain.domainName }}</h3>
+          <div v-for="(domain, domainIndex) in groupedDomains" :key="domainIndex" class="p-6 bg-gray-50 rounded-lg">
+            <h3 class="text-lg font-bold text-gray-800 mb-6">{{ domain.domainName }}</h3>
             
-            <div v-for="(goal, goalIndex) in domain.goals" :key="goalIndex" class="mb-8 last:mb-0">
-              <div class="mb-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-1">目標 {{ goalIndex + 1 }}</label>
-                <p class="text-sm text-gray-600 mb-2">{{ goal.shortTermGoal }}</p>
+            <!-- 按長程目標分組 -->
+            <div v-for="(group, groupIndex) in domain.groupedGoals" :key="groupIndex" class="mb-8 last:mb-0">
+              <!-- 長程目標標題 -->
+              <div class="mb-4 pb-2 border-b-2 border-indigo-200">
+                <div class="flex items-start space-x-2">
+                  <UBadge color="indigo" size="sm">長程目標 {{ groupIndex + 1 }}</UBadge>
+                  <p class="text-base font-semibold text-indigo-900 flex-1">{{ group.longTermGoal }}</p>
+                </div>
               </div>
+              
+              <!-- 該長程目標下的所有短程目標 -->
+              <div class="space-y-6 ml-6">
+                <div v-for="(goal, goalIndex) in group.shortTermGoals" :key="goalIndex" class="p-4 bg-white rounded-lg border-l-4 border-blue-400 shadow-sm">
+                  <div class="mb-4">
+                    <div class="flex items-start space-x-2 mb-2">
+                      <UBadge color="blue" variant="soft" size="sm">短程 {{ groupIndex + 1 }}.{{ goalIndex + 1 }}</UBadge>
+                    </div>
+                    <p class="text-sm text-gray-700">{{ goal.shortTermGoal }}</p>
+                  </div>
 
-              <!-- 評量表格 -->
+                  <!-- 評量表格 -->
               <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                   <thead class="bg-gray-100">
@@ -335,6 +368,8 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
 
         <template #footer>
           <div class="flex justify-between">
@@ -360,110 +395,126 @@
         </template>
 
         <div class="space-y-8">
-          <div v-for="(domain, domainIndex) in formData.domains" :key="domainIndex" class="p-6 bg-gray-50 rounded-lg">
-            <h3 class="text-lg font-bold text-gray-800 mb-4">{{ domain.domainName }}</h3>
+          <div v-for="(domain, domainIndex) in groupedDomains" :key="domainIndex" class="p-6 bg-gray-50 rounded-lg">
+            <h3 class="text-lg font-bold text-gray-800 mb-6">{{ domain.domainName }}</h3>
             
-            <div v-for="(goal, goalIndex) in domain.goals" :key="goalIndex" class="mb-6 last:mb-0 p-4 bg-white rounded-lg border border-gray-200">
-              <div class="mb-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-1">目標 {{ goalIndex + 1 }}</label>
-                <p class="text-sm text-gray-600">{{ goal.shortTermGoal }}</p>
-              </div>
-
-              <!-- 目標達成狀態 -->
-              <div class="mb-6 pb-6 border-b border-gray-200">
-                <label class="block text-sm font-semibold text-gray-700 mb-3">目標達成狀態</label>
-                <div class="space-y-3">
-                  <label class="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
-                      v-model="goal.goalAchieved" 
-                      :disabled="isViewMode"
-                      class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span class="text-sm">目標達成</span>
-                  </label>
-                  
-                  <label class="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
-                      v-model="goal.goalNotAchieved" 
-                      :disabled="isViewMode"
-                      class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span class="text-sm">目標未達成</span>
-                  </label>
-                  
-                  <div v-if="goal.goalNotAchieved" class="ml-6 mt-2">
-                    <label class="block text-xs text-gray-600 mb-1">未達成原因</label>
-                    <UTextarea 
-                      v-model="goal.notAchievedReason" 
-                      :disabled="isViewMode"
-                      :rows="3"
-                      placeholder="請說明目標未達成的原因..."
-                      size="sm"
-                    />
-                  </div>
+            <!-- 按長程目標分組 -->
+            <div v-for="(group, groupIndex) in domain.groupedGoals" :key="groupIndex" class="mb-8 last:mb-0">
+              <!-- 長程目標標題 -->
+              <div class="mb-4 pb-2 border-b-2 border-indigo-200">
+                <div class="flex items-start space-x-2">
+                  <UBadge color="indigo" size="sm">長程目標 {{ groupIndex + 1 }}</UBadge>
+                  <p class="text-base font-semibold text-indigo-900 flex-1">{{ group.longTermGoal }}</p>
                 </div>
               </div>
-
-              <!-- 教學決定 -->
-              <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-3">教學決定是否繼續？</label>
-                <div class="space-y-3">
-                  <label class="flex items-center space-x-2">
-                    <input 
-                      type="radio" 
-                      :name="`continue-${domainIndex}-${goalIndex}`"
-                      value="continue"
-                      v-model="goal.teachingDecision"
-                      :disabled="isViewMode"
-                      class="text-blue-600 focus:ring-blue-500"
-                    />
-                    <span class="text-sm">繼續</span>
-                  </label>
-                  
-                  <div v-if="goal.teachingDecision === 'continue'" class="ml-6 space-y-2">
-                    <label class="flex items-center space-x-2">
-                      <input 
-                        type="checkbox"
-                        v-model="goal.simplify"
-                        :disabled="isViewMode"
-                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span class="text-xs">簡化</span>
-                    </label>
-                    <label class="flex items-center space-x-2">
-                      <input 
-                        type="checkbox"
-                        v-model="goal.expand"
-                        :disabled="isViewMode"
-                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span class="text-xs">擴充</span>
-                    </label>
+              
+              <!-- 該長程目標下的所有短程目標 -->
+              <div class="space-y-4 ml-6">
+                <div v-for="(goal, goalIndex) in group.shortTermGoals" :key="goalIndex" class="p-4 bg-white rounded-lg border-l-4 border-blue-400 shadow-sm">
+                  <div class="mb-4">
+                    <div class="flex items-start space-x-2 mb-2">
+                      <UBadge color="blue" variant="soft" size="sm">短程 {{ groupIndex + 1 }}.{{ goalIndex + 1 }}</UBadge>
+                    </div>
+                    <p class="text-sm text-gray-700">{{ goal.shortTermGoal }}</p>
                   </div>
 
-                  <label class="flex items-center space-x-2">
-                    <input 
-                      type="radio" 
-                      :name="`continue-${domainIndex}-${goalIndex}`"
-                      value="discontinue"
-                      v-model="goal.teachingDecision"
-                      :disabled="isViewMode"
-                      class="text-blue-600 focus:ring-blue-500"
-                    />
-                    <span class="text-sm">不繼續</span>
-                  </label>
-                  
-                  <div v-if="goal.teachingDecision === 'discontinue'" class="ml-6 mt-2">
-                    <label class="block text-xs text-gray-600 mb-1">不繼續的原因</label>
-                    <UTextarea 
-                      v-model="goal.discontinueReason" 
-                      :disabled="isViewMode"
-                      :rows="3"
-                      placeholder="請說明不繼續的原因..."
-                      size="sm"
-                    />
+                  <!-- 目標達成狀態 -->
+                  <div class="mb-6 pb-6 border-b border-gray-200">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">目標達成狀態</label>
+                    <div class="space-y-3">
+                      <label class="flex items-center space-x-2">
+                        <input 
+                          type="checkbox" 
+                          v-model="goal.goalAchieved" 
+                          :disabled="isViewMode"
+                          @change="() => { if (goal.goalAchieved) goal.goalNotAchieved = false }"
+                          class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span class="text-sm">目標達成</span>
+                      </label>
+                      
+                      <label class="flex items-center space-x-2">
+                        <input 
+                          type="checkbox" 
+                          v-model="goal.goalNotAchieved" 
+                          :disabled="isViewMode"
+                          @change="() => { if (goal.goalNotAchieved) goal.goalAchieved = false }"
+                          class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span class="text-sm">目標未達成</span>
+                      </label>
+                      
+                      <div v-if="goal.goalNotAchieved" class="ml-6 mt-2">
+                        <UTextarea 
+                          v-model="goal.notAchievedReason" 
+                          :disabled="isViewMode"
+                          :rows="3"
+                          placeholder="請說明目標未達成的原因..."
+                          size="sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 教學決定 -->
+                  <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">教學決定是否繼續？</label>
+                    <div class="space-y-3">
+                      <label class="flex items-center space-x-2">
+                        <input 
+                          type="radio" 
+                          :name="`continue-${domainIndex}-${goalIndex}`"
+                          value="continue"
+                          v-model="goal.teachingDecision"
+                          :disabled="isViewMode"
+                          class="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span class="text-sm">繼續</span>
+                      </label>
+                      
+                      <div v-if="goal.teachingDecision === 'continue'" class="ml-6 space-y-2">
+                        <label class="flex items-center space-x-2">
+                          <input 
+                            type="checkbox"
+                            v-model="goal.simplify"
+                            :disabled="isViewMode"
+                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span class="text-xs">簡化</span>
+                        </label>
+                        <label class="flex items-center space-x-2">
+                          <input 
+                            type="checkbox"
+                            v-model="goal.expand"
+                            :disabled="isViewMode"
+                            class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span class="text-xs">擴充</span>
+                        </label>
+                      </div>
+
+                      <label class="flex items-center space-x-2">
+                        <input 
+                          type="radio" 
+                          :name="`continue-${domainIndex}-${goalIndex}`"
+                          value="discontinue"
+                          v-model="goal.teachingDecision"
+                          :disabled="isViewMode"
+                          class="text-blue-600 focus:ring-blue-500"
+                        />
+                        <span class="text-sm">不繼續</span>
+                      </label>
+                      
+                      <div v-if="goal.teachingDecision === 'discontinue'" class="ml-6 mt-2">
+                        <UTextarea 
+                          v-model="goal.discontinueReason" 
+                          :disabled="isViewMode"
+                          :rows="3"
+                          placeholder="請說明不繼續的原因..."
+                          size="sm"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -664,6 +715,30 @@ const totalGoals = computed(() => {
   return formData.value.domains.reduce((sum, domain) => sum + domain.goals.length, 0)
 })
 
+// 按長程目標分組（用於顯示）
+const groupedDomains = computed(() => {
+  return formData.value.domains.map(domain => {
+    // 將目標按長程目標分組
+    const groupedGoals = new Map<string, typeof domain.goals>()
+    
+    domain.goals.forEach((goal) => {
+      const longTermKey = goal.longTermGoal || `未分類目標`
+      if (!groupedGoals.has(longTermKey)) {
+        groupedGoals.set(longTermKey, [])
+      }
+      groupedGoals.get(longTermKey)!.push(goal)
+    })
+    
+    return {
+      ...domain,
+      groupedGoals: Array.from(groupedGoals.entries()).map(([longTerm, goals]) => ({
+        longTermGoal: longTerm,
+        shortTermGoals: goals
+      }))
+    }
+  })
+})
+
 // 步驟控制
 const nextStep = () => {
   if (currentStep.value < steps.value.length - 1) {
@@ -714,6 +789,10 @@ const importFromIsp = async () => {
     if (docSnap.exists()) {
       const data = docSnap.data()
       
+      console.log('ISP 原始資料:', data)
+      console.log('domains 結構:', data.domains)
+      console.log('selectedDomains:', data.selectedDomains)
+      
       // 匯入基本資訊
       formData.value.studentName = data.studentName || ''
       formData.value.sessionNumber = data.sessionNumber || ''
@@ -730,28 +809,39 @@ const importFromIsp = async () => {
         if (!domainData?.confirmed) return
 
         const confirmedData = domainData.confirmed
-        const longTermGoals = confirmedData.longTerms || []
-        const shortTermGoals = confirmedData.shortTerms || []
+        const ispGoals = confirmedData.goals || []
+        
+        console.log(`${domainId} 的目標:`, ispGoals)
 
-        // 創建目標列表，為每個目標創建3個評量時間點：教學前、教學後、目標達成日
-        const goals = shortTermGoals.map((shortTerm: string, index: number) => ({
-          longTermGoal: longTermGoals[Math.floor(index / (shortTermGoals.length / longTermGoals.length))] || longTermGoals[0] || '',
-          shortTermGoal: shortTerm,
-          executionContexts: [],
-          evaluationPoints: [
-            { type: '教學前', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 },
-            { type: '教學後', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 },
-            { type: '目標達成日', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 }
-          ],
-          goalAchieved: false,
-          achievedDate: '',
-          goalNotAchieved: false,
-          notAchievedReason: '',
-          teachingDecision: '',
-          simplify: false,
-          expand: false,
-          discontinueReason: ''
-        }))
+        // 創建目標列表，為每個短程目標創建3個評量時間點：教學前、教學後、目標達成日
+        const goals: any[] = []
+        
+        ispGoals.forEach((ispGoal: any) => {
+          const longTermGoal = ispGoal.longTerm || ''
+          const shortTerms = ispGoal.shortTerms || []
+          
+          // 為每個短程目標創建一個評量目標
+          shortTerms.forEach((shortTerm: string) => {
+            goals.push({
+              longTermGoal: longTermGoal,
+              shortTermGoal: shortTerm,
+              executionContexts: [],
+              evaluationPoints: [
+                { type: '教學前', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 },
+                { type: '教學後', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 },
+                { type: '目標達成日', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 }
+              ],
+              goalAchieved: false,
+              achievedDate: '',
+              goalNotAchieved: false,
+              notAchievedReason: '',
+              teachingDecision: '',
+              simplify: false,
+              expand: false,
+              discontinueReason: ''
+            })
+          })
+        })
 
         if (goals.length > 0) {
           formData.value.domains.push({
@@ -761,6 +851,9 @@ const importFromIsp = async () => {
           })
         }
       })
+
+      console.log('匯入後的 formData.domains:', formData.value.domains)
+      console.log('總共匯入目標數:', formData.value.domains.reduce((sum, d) => sum + d.goals.length, 0))
 
       hasImported.value = true
       alert(`成功匯入 ${formData.value.domains.length} 個領域的目標！`)
