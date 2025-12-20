@@ -893,6 +893,7 @@ const saveAndReturn = async () => {
     
     for (let i = 0; i < domain.initial.goals.length; i++) {
       const goal = domain.initial.goals[i]
+      if (!goal) continue
       if (!goal.longTerm || !goal.longTerm.trim()) {
         alert(`請完整填寫 ${getDomainById(domainId).name} 的初擬長程目標 ${i + 1}`)
         return
@@ -911,6 +912,7 @@ const saveAndReturn = async () => {
     
     for (let i = 0; i < domain.confirmed.goals.length; i++) {
       const goal = domain.confirmed.goals[i]
+      if (!goal) continue
       if (!goal.longTerm || !goal.longTerm.trim()) {
         alert(`請完整填寫 ${getDomainById(domainId).name} 的確認長程目標 ${i + 1}`)
         return
@@ -984,6 +986,7 @@ const exportCurrentForm = async () => {
     
     for (let i = 0; i < domain.initial.goals.length; i++) {
       const goal = domain.initial.goals[i]
+      if (!goal) continue
       if (!goal.longTerm || !goal.longTerm.trim()) {
         alert(`請完整填寫 ${getDomainById(domainId).name} 的初擬長程目標 ${i + 1}`)
         return
@@ -1002,6 +1005,7 @@ const exportCurrentForm = async () => {
     
     for (let i = 0; i < domain.confirmed.goals.length; i++) {
       const goal = domain.confirmed.goals[i]
+      if (!goal) continue
       if (!goal.longTerm || !goal.longTerm.trim()) {
         alert(`請完整填寫 ${getDomainById(domainId).name} 的確認長程目標 ${i + 1}`)
         return

@@ -49,6 +49,15 @@
               <UIcon name="i-heroicons-clipboard-document-list" class="mr-1" />
               細目標
             </UButton>
+            <UButton 
+              :color="isActive('/weekly-plan') ? 'orange' : 'gray'"
+              :variant="isActive('/weekly-plan') ? 'solid' : 'soft'"
+              size="sm"
+              @click="navigateTo('/weekly-plan-list')"
+            >
+              <UIcon name="i-heroicons-calendar-days" class="mr-1" />
+              週計劃
+            </UButton>
           </div>
         </div>
 

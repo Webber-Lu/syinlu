@@ -33,79 +33,14 @@
 
       <!-- 細目標記錄列表 -->
       <div v-else-if="detailedGoalForms.length > 0" class="space-y-4">
-        <UCard 
-          v-for="form in detailedGoalForms" 
+        <ListCard
+          v-for="form in detailedGoalForms"
           :key="form.id"
-          class="hover:shadow-lg transition-shadow"
-        >
-          <div class="flex items-center justify-between">
-            <div class="flex-1">
-              <div class="flex items-center space-x-3 mb-3">
-                <h3 class="text-xl font-bold text-gray-800">{{ form.studentName }}</h3>
-                <UBadge color="purple" variant="soft">第 {{ form.sessionNumber }} 次</UBadge>
-              </div>
-              
-              <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
-                <div>
-                  <span class="font-medium">起迄日期：</span>
-                  <span>{{ form.startDate }} ~ {{ form.endDate }}</span>
-                </div>
-                <div>
-                  <span class="font-medium">領域數量：</span>
-                  <span>{{ form.domains?.length || 0 }} 個</span>
-                </div>
-                <div>
-                  <span class="font-medium">建立時間：</span>
-                  <span>{{ formatDate(form.createdAt) }}</span>
-                </div>
-              </div>
-
-              <!-- 領域統計 -->
-              <div class="flex flex-wrap gap-2">
-                <UBadge 
-                  v-for="domain in form.domains" 
-                  :key="domain.domainId"
-                  color="indigo"
-                  variant="soft"
-                  size="sm"
-                >
-                  {{ domain.domainName }}: {{ countGoals(domain) }} 個目標
-                </UBadge>
-              </div>
-            </div>
-
-            <!-- 操作按鈕 -->
-            <div class="flex flex-col space-y-2 ml-4">
-              <UButton 
-                color="blue" 
-                variant="soft"
-                size="sm"
-                @click="viewForm(form.id)"
-              >
-                <UIcon name="i-heroicons-eye" class="mr-1" />
-                查看
-              </UButton>
-              <UButton 
-                color="green" 
-                variant="soft"
-                size="sm"
-                @click="editForm(form.id)"
-              >
-                <UIcon name="i-heroicons-pencil" class="mr-1" />
-                編輯
-              </UButton>
-              <UButton 
-                color="red" 
-                variant="soft"
-                size="sm"
-                @click="deleteForm(form.id)"
-              >
-                <UIcon name="i-heroicons-trash" class="mr-1" />
-                刪除
-              </UButton>
-            </div>
-          </div>
-        </UCard>
+          :student-name="form.studentName"
+          :on-edit="() => editForm(form.id)"
+          :on-export="() => exportForm(form.id)"
+          :on-delete="() => deleteForm(form.id)"
+        />
       </div>
 
       <!-- 空狀態 -->
@@ -172,31 +107,22 @@ const loadForms = async () => {
   }
 }
 
-// 計算領域內的目標數量
-const countGoals = (domain: any) => {
-  return domain.goals?.length || 0
-}
-
-// 格式化日期
-const formatDate = (timestamp: any) => {
-  if (!timestamp) return '-'
-  const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-  return date.toLocaleDateString('zh-TW')
-}
-
 // 新增表單
 const createNewForm = () => {
   navigateTo('/detailed-goal-form')
 }
 
-// 查看表單
-const viewForm = (id: string) => {
-  navigateTo(`/detailed-goal-form?view=${id}`)
-}
-
 // 編輯表單
 const editForm = (id: string) => {
   navigateTo(`/detailed-goal-form?edit=${id}`)
+}
+
+// 匯出表單
+const exportForm = (id: string) => {
+  useToast().add({
+    title: '匯出功能開發中',
+    color: 'blue'
+  })
 }
 
 // 刪除表單
@@ -208,11 +134,17 @@ const deleteForm = async (id: string) => {
   try {
     const db = getDb()
     await deleteDoc(doc(db, 'detailed_goal_forms', id))
-    alert('已成功刪除')
+    useToast().add({
+      title: '刪除成功',
+      color: 'green'
+    })
     await loadForms()
   } catch (error) {
     console.error('刪除失敗:', error)
-    alert('刪除失敗，請稍後再試')
+    useToast().add({
+      title: '刪除失敗',
+      color: 'red'
+    })
   }
 }
 

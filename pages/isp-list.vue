@@ -33,82 +33,14 @@
 
       <!-- 表單列表 -->
       <div v-else-if="forms.length > 0" class="space-y-4">
-        <UCard 
-          v-for="form in forms" 
+        <ListCard
+          v-for="form in forms"
           :key="form.id"
-          class="hover:shadow-lg transition-shadow"
-        >
-          <div class="flex items-center justify-between">
-            <div class="flex-1">
-              <div class="flex items-center space-x-3 mb-2">
-                <h3 class="text-xl font-bold text-gray-800">{{ form.studentName }}</h3>
-              </div>
-              
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                <div>
-                  <span class="font-medium">第幾次：</span>
-                  <span>{{ form.sessionNumber || '-' }}</span>
-                </div>
-                <div>
-                  <span class="font-medium">擬定者：</span>
-                  <span>{{ form.planner || '-' }}</span>
-                </div>
-                <div>
-                  <span class="font-medium">執行期間：</span>
-                  <span>{{ form.startDate || '-' }} ~ {{ form.endDate || '-' }}</span>
-                </div>
-                <div>
-                  <span class="font-medium">更新時間：</span>
-                  <span>{{ formatDate(form.updatedAt) }}</span>
-                </div>
-              </div>
-
-              <div v-if="form.selectedDomains && form.selectedDomains.length > 0" class="mt-3 flex flex-wrap gap-2">
-                <UBadge 
-                  v-for="domainId in form.selectedDomains" 
-                  :key="domainId"
-                  color="blue" 
-                  variant="soft"
-                  size="xs"
-                >
-                  {{ getDomainName(domainId) }}
-                </UBadge>
-              </div>
-            </div>
-
-            <div class="flex items-center space-x-2 ml-4">
-              <UButton 
-                color="blue" 
-                variant="soft"
-                size="sm"
-                @click="editForm(form.id)"
-              >
-                <UIcon name="i-heroicons-pencil-square" class="mr-1" />
-                編輯
-              </UButton>
-
-              <UButton 
-                color="green" 
-                variant="soft"
-                size="sm"
-                @click="exportForm(form.id)"
-                :loading="exportingId === form.id"
-              >
-                <UIcon name="i-heroicons-arrow-down-tray" class="mr-1" />
-                匯出
-              </UButton>
-
-              <UButton 
-                color="red" 
-                variant="soft"
-                size="sm"
-                @click="confirmDelete(form)"
-              >
-                <UIcon name="i-heroicons-trash" />
-              </UButton>
-            </div>
-          </div>
-        </UCard>
+          :student-name="form.studentName"
+          :on-edit="() => editForm(form.id)"
+          :on-export="() => exportForm(form.id)"
+          :on-delete="() => confirmDelete(form)"
+        />
       </div>
 
       <!-- 空狀態 -->

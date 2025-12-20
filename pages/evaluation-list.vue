@@ -33,82 +33,14 @@
 
       <!-- 評鑑記錄列表 -->
       <div v-else-if="evaluations.length > 0" class="space-y-4">
-        <UCard 
-          v-for="evaluation in evaluations" 
+        <ListCard
+          v-for="evaluation in evaluations"
           :key="evaluation.id"
-          class="hover:shadow-lg transition-shadow"
-        >
-          <div class="flex items-center justify-between">
-            <div class="flex-1">
-              <div class="flex items-center space-x-3 mb-2">
-                <h3 class="text-xl font-bold text-gray-800">{{ evaluation.studentName }}</h3>
-              </div>
-              
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm text-gray-600">
-                <div>
-                  <span class="font-medium">評鑑日期：</span>
-                  <span>{{ evaluation.evaluationDate || '-' }}</span>
-                </div>
-                <div>
-                  <span class="font-medium">評鑑者：</span>
-                  <span>{{ evaluation.evaluatorName || '-' }}</span>
-                </div>
-                <div>
-                  <span class="font-medium">評鑑期間：</span>
-                  <span>{{ evaluation.startDate || '-' }} ~ {{ evaluation.endDate || '-' }}</span>
-                </div>
-                <div>
-                  <span class="font-medium">目標數量：</span>
-                  <span>{{ evaluation.goals?.length || 0 }} 個</span>
-                </div>
-              </div>
-
-              <!-- 顯示平均分數 -->
-              <div v-if="evaluation.goals && evaluation.goals.length > 0" class="mt-3 flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                  <span class="text-sm text-gray-600">平均總分：</span>
-                  <UBadge color="indigo" variant="soft">
-                    {{ calculateAverageScore(evaluation.goals) }} / 16
-                  </UBadge>
-                </div>
-                <div class="text-xs text-gray-500">
-                  更新時間：{{ formatDate(evaluation.updatedAt) }}
-                </div>
-              </div>
-            </div>
-
-            <div class="flex items-center space-x-2 ml-4">
-              <UButton 
-                color="blue" 
-                variant="soft"
-                size="sm"
-                @click="editForm(evaluation.id)"
-              >
-                <UIcon name="i-heroicons-pencil-square" class="mr-1" />
-                編輯
-              </UButton>
-              
-              <UButton 
-                color="green" 
-                variant="soft"
-                size="sm"
-                @click="exportForm(evaluation.id)"
-              >
-                <UIcon name="i-heroicons-arrow-down-tray" class="mr-1" />
-                匯出
-              </UButton>
-
-              <UButton 
-                color="red" 
-                variant="soft"
-                size="sm"
-                @click="confirmDelete(evaluation)"
-              >
-                <UIcon name="i-heroicons-trash" />
-              </UButton>
-            </div>
-          </div>
-        </UCard>
+          :student-name="evaluation.studentName"
+          :on-edit="() => editForm(evaluation.id)"
+          :on-export="() => exportForm(evaluation.id)"
+          :on-delete="() => confirmDelete(evaluation)"
+        />
       </div>
 
       <!-- 空狀態 -->
