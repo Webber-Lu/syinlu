@@ -278,17 +278,34 @@
                     <p class="text-sm text-gray-700">{{ goal.shortTermGoal }}</p>
                   </div>
 
+                  <!-- 評量起訖日期 -->
+                  <div class="mb-4 grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded">
+                    <UFormGroup label="教學開始日期" size="sm">
+                      <UInput
+                        v-model="goal.evaluationStartDate"
+                        type="date"
+                        :disabled="isViewMode"
+                        size="sm"
+                      />
+                    </UFormGroup>
+                    <UFormGroup label="教學結束日期" size="sm">
+                      <UInput
+                        v-model="goal.evaluationEndDate"
+                        type="date"
+                        :disabled="isViewMode"
+                        size="sm"
+                      />
+                    </UFormGroup>
+                  </div>
+
                   <!-- 評量表格 -->
               <div class="overflow-x-auto bg-white rounded-lg border border-gray-200">
                 <table class="min-w-full divide-y divide-gray-200 text-sm">
                   <thead class="bg-gray-100">
                     <tr>
                       <th class="px-4 py-3 text-left font-semibold text-gray-700">評量時間</th>
-                      <th class="px-4 py-3 text-left font-semibold text-gray-700">起訖日期</th>
-                      <th class="px-4 py-3 text-center font-semibold text-blue-700">A-達成度</th>
-                      <th class="px-4 py-3 text-center font-semibold text-green-700">B-量</th>
-                      <th class="px-4 py-3 text-center font-semibold text-orange-700">C-協助</th>
-                      <th class="px-4 py-3 text-center font-semibold text-purple-700">D-反應</th>
+                      <th class="px-4 py-3 text-center font-semibold text-gray-700">評分類型</th>
+                      <th class="px-4 py-3 text-center font-semibold text-gray-700">分數</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-gray-200">
@@ -297,42 +314,19 @@
                         <div class="font-medium text-gray-800">{{ point.type }}</div>
                       </td>
                       <td class="px-4 py-3">
-                        <UInput
-                          v-model="point.date"
-                          type="date"
+                        <USelect
+                          v-model="point.scoreType"
+                          :options="scoreTypeOptions"
                           :disabled="isViewMode"
                           size="sm"
+                          placeholder="選擇類型"
                         />
                       </td>
                       <td class="px-4 py-3">
                         <USelect
-                          v-model.number="point.scoreA"
+                          v-model.number="point.score"
                           :options="scoreOptions"
-                          :disabled="isViewMode"
-                          size="sm"
-                        />
-                      </td>
-                      <td class="px-4 py-3">
-                        <USelect
-                          v-model.number="point.scoreB"
-                          :options="scoreOptions"
-                          :disabled="isViewMode"
-                          size="sm"
-                        />
-                      </td>
-                      <td class="px-4 py-3">
-                        <USelect
-                          v-model.number="point.scoreC"
-                          :options="scoreOptions"
-                          :disabled="isViewMode"
-                          size="sm"
-                        />
-                      </td>
-                      <td class="px-4 py-3">
-                        <USelect
-                          v-model.number="point.scoreD"
-                          :options="scoreOptions"
-                          :disabled="isViewMode"
+                          :disabled="isViewMode || !point.scoreType"
                           size="sm"
                         />
                       </td>
@@ -598,29 +592,27 @@
 </template>
 
 <script setup lang="ts">
-import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, serverTimestamp, getFirestore } from 'firebase/firestore'
-import { getApp } from 'firebase/app'
+import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, serverTimestamp } from 'firebase/firestore'
 import { useAuth } from '~/composables/useAuth'
+import { useFirestore } from '~/composables/useFirestore'
+import { useFormSession } from '~/composables/useFormSession'
 
 const { user } = useAuth()
+const { getDb } = useFirestore()
 const route = useRoute()
-
-// 取得 Firestore 實例
-const getDb = () => {
-  return getFirestore(getApp())
-}
+const { saveStep, restoreStep, clearStep, editingId } = useFormSession('evaluation')
 
 // 狀態管理
 const isViewMode = ref(!!route.query.view)
-const editingFormId = ref<string | null>(route.query.edit as string || route.query.view as string || null)
+const editingFormId = computed(() => editingId.value)
 const isSaving = ref(false)
 const isSubmitting = ref(false)
 const isImporting = ref(false)
 const isExporting = ref(false)
 const hasImported = ref(false)
 
-// 步驟定義
-const steps = ref(['匯入目標', '執行情境', '教學時間', '成效評量', '目標未達成原因與教學決定'])
+// 步驟控制
+const steps = ref(['基本資料', '匯入 ISP', '目標評量', '結果總結'])
 const currentStep = ref(0)
 
 // ISP 表單選項
@@ -642,13 +634,12 @@ const formData = ref({
       longTermGoal: string
       shortTermGoal: string
       executionContexts: string[]
+      evaluationStartDate: string  // 評量起始日期
+      evaluationEndDate: string    // 評量結束日期
       evaluationPoints: Array<{
-        type: string
-        date: string
-        scoreA: number
-        scoreB: number
-        scoreC: number
-        scoreD: number
+        type: string              // '教學前' | '教學後' | '目標達成日'
+        scoreType: 'A' | 'B' | 'C' | 'D' | ''  // 選擇的評分類型
+        score: number             // 0-4分
       }>
       goalAchieved: boolean
       achievedDate: string
@@ -672,6 +663,14 @@ const scoreOptions = [
   { label: '2', value: 2 },
   { label: '3', value: 3 },
   { label: '4', value: 4 }
+]
+
+// 評分類型選項
+const scoreTypeOptions = [
+  { label: 'A', value: 'A' },
+  { label: 'B', value: 'B' },
+  { label: 'C', value: 'C' },
+  { label: 'D', value: 'D' }
 ]
 
 // 領域名稱映射
@@ -801,10 +800,12 @@ const importFromIsp = async () => {
               longTermGoal: longTermGoal,
               shortTermGoal: shortTerm,
               executionContexts: [],
+              evaluationStartDate: '',
+              evaluationEndDate: '',
               evaluationPoints: [
-                { type: '教學前', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 },
-                { type: '教學後', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 },
-                { type: '目標達成日', date: '', scoreA: 0, scoreB: 0, scoreC: 0, scoreD: 0 }
+                { type: '教學前', scoreType: '', score: 0 },
+                { type: '教學後', scoreType: '', score: 0 },
+                { type: '目標達成日', scoreType: '', score: 0 }
               ],
               goalAchieved: false,
               achievedDate: '',
@@ -873,13 +874,14 @@ const submitForm = async () => {
 
     if (editingFormId.value) {
       await updateDoc(doc(db, 'evaluation_forms', editingFormId.value), formDataToSave)
+      alert('評鑑記錄已更新')
     } else {
       formDataToSave.createdAt = serverTimestamp()
-      const docRef = await addDoc(collection(db, 'evaluation_forms'), formDataToSave)
-      editingFormId.value = docRef.id
+      await addDoc(collection(db, 'evaluation_forms'), formDataToSave)
+      alert('評鑑記錄已儲存')
     }
 
-    alert('評鑑記錄已儲存')
+    clearStep()
     navigateTo('/evaluation-list')
   } catch (error) {
     console.error('儲存失敗:', error)
@@ -924,10 +926,10 @@ const exportForm = async () => {
       await updateDoc(doc(db, 'evaluation_forms', editingFormId.value), formDataToSave)
     } else {
       formDataToSave.createdAt = serverTimestamp()
-      const docRef = await addDoc(collection(db, 'evaluation_forms'), formDataToSave)
-      editingFormId.value = docRef.id
+      await addDoc(collection(db, 'evaluation_forms'), formDataToSave)
     }
 
+    clearStep()
     // TODO: 實作 Word 匯出功能
     alert('評鑑記錄已儲存！Word 匯出功能開發中...')
     navigateTo('/evaluation-list')
@@ -976,5 +978,19 @@ onMounted(async () => {
     const formId = (route.query.edit || route.query.view) as string
     await loadForm(formId)
   }
+  
+  // 在載入表單後恢復步驟狀態（僅在編輯模式）
+  if (editingFormId.value && !isViewMode.value) {
+    const savedStep = restoreStep()
+    if (savedStep > 0) {
+      currentStep.value = savedStep
+    }
+  }
+})
+
+// 離開頁面前不清除 sessionStorage（允許頁面切換後恢復步驟）
+// 只在表單成功提交後才清除
+onBeforeUnmount(() => {
+  // sessionStorage 保留，以便用戶返回時恢復步驟
 })
 </script>

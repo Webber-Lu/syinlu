@@ -283,20 +283,20 @@
 import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, serverTimestamp, getFirestore } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 import { useAuth } from '~/composables/useAuth'
+import { useFirestore } from '~/composables/useFirestore'
+import { useFormSession } from '~/composables/useFormSession'
 
 const { user } = useAuth()
+const { getDb } = useFirestore()
 const route = useRoute()
-
-const getDb = () => {
-  return getFirestore(getApp())
-}
+const { saveStep, restoreStep, clearStep, editingId } = useFormSession('detailed-goal')
 
 // 狀態管理
 const currentStep = ref(0)
 const isImporting = ref(false)
 const isSaving = ref(false)
 const hasImported = ref(false)
-const editingFormId = ref<string | null>(route.query.edit as string || null)
+const editingFormId = computed(() => editingId.value)
 
 const ispFormOptions = ref<Array<{ label: string; value: string }>>([])
 const selectedIspForm = ref<string>('')
@@ -565,5 +565,19 @@ onMounted(async () => {
       console.error('載入失敗:', error)
     }
   }
+  
+  // 在載入表單後恢復步驟狀態（僅編輯模式）
+  if (editingFormId.value) {
+    const savedStep = restoreStep()
+    if (savedStep > 0) {
+      currentStep.value = savedStep
+    }
+  }
+})
+
+// 離開頁面前不清除 sessionStorage（允許頁面切換後恢復步驟）
+// 只在表單成功提交後才清除
+onBeforeUnmount(() => {
+  // sessionStorage 保留，以便用戶返回時恢復步驟
 })
 </script>

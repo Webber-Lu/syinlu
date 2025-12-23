@@ -58,6 +58,15 @@
               <UIcon name="i-heroicons-calendar-days" class="mr-1" />
               週計劃
             </UButton>
+            <UButton 
+              :color="isActive('/monthly-status') ? 'pink' : 'gray'"
+              :variant="isActive('/monthly-status') ? 'solid' : 'soft'"
+              size="sm"
+              @click="navigateTo('/monthly-status-list')"
+            >
+              <UIcon name="i-heroicons-document-chart-bar" class="mr-1" />
+              月況
+            </UButton>
           </div>
         </div>
 

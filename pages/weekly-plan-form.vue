@@ -1,35 +1,54 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50">
     <Menubar />
     
-    <div class="container mx-auto px-4 py-8">
-      <div class="max-w-6xl mx-auto">
-        <UCard>
-          <template #header>
-            <h1 class="text-2xl font-bold">週計劃表單</h1>
-          </template>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <!-- 表單標題 -->
+      <div class="mb-8 text-center">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full mb-4 shadow-lg">
+          <UIcon name="i-heroicons-calendar-days" class="w-8 h-8 text-white" />
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">週計劃管理</h1>
+        <p class="text-gray-600">學習活動週排程與目標規劃</p>
+      </div>
 
-          <!-- 步驟指示器 -->
-          <div class="mb-8">
-            <div class="flex items-center justify-center space-x-4">
-              <div :class="['flex items-center', currentStep === 0 ? 'text-primary' : 'text-gray-400']">
-                <div :class="['w-8 h-8 rounded-full flex items-center justify-center', currentStep === 0 ? 'bg-primary text-white' : 'bg-gray-200']">
-                  1
-                </div>
-                <span class="ml-2">基本資訊</span>
+      <!-- 步驟指示器 -->
+      <div class="mb-8">
+        <div class="flex items-center justify-center space-x-4">
+          <div v-for="step in 2" :key="step" class="flex items-center">
+            <div class="flex items-center">
+              <div 
+                :class="[
+                  'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all',
+                  currentStep >= step - 1 ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-500'
+                ]"
+              >
+                {{ step }}
               </div>
-              <div class="w-16 h-0.5 bg-gray-300"></div>
-              <div :class="['flex items-center', currentStep === 1 ? 'text-primary' : 'text-gray-400']">
-                <div :class="['w-8 h-8 rounded-full flex items-center justify-center', currentStep === 1 ? 'bg-primary text-white' : 'bg-gray-200']">
-                  2
-                </div>
-                <span class="ml-2">週計劃排程</span>
-              </div>
+              <span 
+                :class="[
+                  'ml-2 font-medium',
+                  currentStep >= step - 1 ? 'text-orange-600' : 'text-gray-400'
+                ]"
+              >
+                {{ ['基本資訊', '週計劃排程'][step - 1] }}
+              </span>
             </div>
+            <div v-if="step < 2" class="w-16 h-1 mx-4" :class="currentStep >= step ? 'bg-orange-600' : 'bg-gray-200'"></div>
           </div>
+        </div>
+      </div>
 
-          <!-- 步驟 0: 基本資訊 -->
-          <div v-if="currentStep === 0" class="space-y-6">
+      <!-- 步驟 1: 基本資訊 -->
+      <UCard v-if="currentStep === 0" class="mb-6">
+        <template #header>
+          <div class="flex items-center space-x-2">
+            <UIcon name="i-heroicons-document-text" class="w-5 h-5 text-orange-600" />
+            <h2 class="text-xl font-bold text-gray-800">基本資訊</h2>
+          </div>
+        </template>
+
+        <div class="space-y-6">
             <UFormGroup label="單元主題" required>
               <UInput v-model="formData.unitTheme" placeholder="請輸入單元主題" />
             </UFormGroup>
@@ -54,253 +73,199 @@
             </div>
 
             <UFormGroup label="執行人" required>
-              <UInput v-model="formData.executor" placeholder="請輸入執行人姓名" />
+              <UInput v-model="formData.executor" placeholder="請輸入執行人姓名" size="lg" />
             </UFormGroup>
-
-            <div class="flex justify-end space-x-4">
-              <UButton color="gray" variant="outline" @click="router.push('/weekly-plan-list')">
-                取消
-              </UButton>
-              <UButton @click="nextStep">
-                下一步
-              </UButton>
-            </div>
           </div>
 
-          <!-- 步驟 1: 週計劃排程 -->
-          <div v-if="currentStep === 1" class="space-y-6">
-            <!-- 日期輸入 -->
-            <div class="grid grid-cols-2 gap-6 mb-6">
-              <UFormGroup label="日期1" class="space-y-2">
-                <div class="flex items-center gap-2">
-                  <UInput v-model="formData.dates.day1.start" type="date" class="flex-1" />
-                  <span class="text-gray-500 font-medium">~</span>
-                  <UInput v-model="formData.dates.day1.end" type="date" class="flex-1" />
-                </div>
-              </UFormGroup>
-              <UFormGroup label="日期2" class="space-y-2">
-                <div class="flex items-center gap-2">
-                  <UInput v-model="formData.dates.day2.start" type="date" class="flex-1" />
-                  <span class="text-gray-500 font-medium">~</span>
-                  <UInput v-model="formData.dates.day2.end" type="date" class="flex-1" />
-                </div>
-              </UFormGroup>
-              <UFormGroup label="日期3" class="space-y-2">
-                <div class="flex items-center gap-2">
-                  <UInput v-model="formData.dates.day3.start" type="date" class="flex-1" />
-                  <span class="text-gray-500 font-medium">~</span>
-                  <UInput v-model="formData.dates.day3.end" type="date" class="flex-1" />
-                </div>
-              </UFormGroup>
-              <UFormGroup label="日期4" class="space-y-2">
-                <div class="flex items-center gap-2">
-                  <UInput v-model="formData.dates.day4.start" type="date" class="flex-1" />
-                  <span class="text-gray-500 font-medium">~</span>
-                  <UInput v-model="formData.dates.day4.end" type="date" class="flex-1" />
-                </div>
-              </UFormGroup>
-            </div>
+          <template #footer>
+            <FormFooter
+              :show-prev="false"
+              :show-next="true"
+              color="orange"
+              @next="nextStep"
+              @cancel="router.push('/weekly-plan-list')"
+            />
+          </template>
+      </UCard>
 
-            <div class="overflow-x-auto">
-              <table class="w-full border-collapse border border-gray-300">
-                <thead>
-                  <tr class="bg-gray-100">
-                    <th class="border border-gray-300 px-4 py-2 text-center w-48">時間</th>
-                    <th class="border border-gray-300 px-4 py-2">
-                      <div class="text-center leading-tight" v-html="formatDateRange(formData.dates.day1) || '日期1'"></div>
-                    </th>
-                    <th class="border border-gray-300 px-4 py-2">
-                      <div class="text-center leading-tight" v-html="formatDateRange(formData.dates.day2) || '日期2'"></div>
-                    </th>
-                    <th class="border border-gray-300 px-4 py-2">
-                      <div class="text-center leading-tight" v-html="formatDateRange(formData.dates.day3) || '日期3'"></div>
-                    </th>
-                    <th class="border border-gray-300 px-4 py-2">
-                      <div class="text-center leading-tight" v-html="formatDateRange(formData.dates.day4) || '日期4'"></div>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <!-- 08:30-09:00 幼兒來園 -->
-                  <tr>
-                    <td class="border border-gray-300 px-4 py-3 font-medium bg-gray-50">
-                      <div class="flex flex-col items-center justify-center">
-                        <div class="text-base font-semibold text-gray-800">08:30-09:00</div>
-                        <div class="text-sm text-gray-600 mt-1">幼兒來園</div>
-                      </div>
-                    </td>
-                    <td colspan="4" class="border border-gray-300 px-4 py-2 text-center bg-gray-100">
-                      口語提示下，收拾書包的物品到指定物品籃中。
-                    </td>
-                  </tr>
+      <!-- 步驟 2: 週計劃排程 -->
+      <UCard v-if="currentStep === 1" class="mb-6">
+        <template #header>
+          <div class="flex items-center space-x-2">
+            <UIcon name="i-heroicons-calendar" class="w-5 h-5 text-orange-600" />
+            <h2 class="text-xl font-bold text-gray-800">週計劃排程</h2>
+          </div>
+        </template>
 
-                  <!-- 09:00-09:10 早會律動 -->
-                  <tr>
-                    <td class="border border-gray-300 px-4 py-3 font-medium bg-gray-50">
-                      <div class="flex flex-col items-center justify-center">
-                        <div class="text-base font-semibold text-gray-800">09:00-09:10</div>
-                        <div class="text-sm text-gray-600 mt-1">早會律動</div>
-                      </div>
-                    </td>
-                    <td colspan="4" class="border border-gray-300 px-4 py-2 text-center bg-gray-100">
-                      能跟著音樂模仿簡單動作。
-                    </td>
-                  </tr>
-
-                  <!-- 09:10-09:20 轉換時間 -->
-                  <tr>
-                    <td class="border border-gray-300 px-4 py-3 font-medium bg-gray-50">
-                      <div class="flex flex-col items-center justify-center">
-                        <div class="text-base font-semibold text-gray-800">09:10-09:20</div>
-                        <div class="text-sm text-gray-600 mt-1">轉換時間</div>
-                      </div>
-                    </td>
-                    <td colspan="4" class="border border-gray-300 px-4 py-2 text-center bg-gray-100">
-                    </td>
-                  </tr>
-
-                  <!-- 可編輯時段（09:20-16:30）使用下拉選單選擇細目標 -->
-                  <tr v-for="slot in editableTimeSlots" :key="slot.time">
-                    <td class="border border-gray-300 px-4 py-3 font-medium bg-gray-50">
-                      <div class="flex flex-col items-center justify-center">
-                        <div class="text-base font-semibold text-gray-800">{{ slot.time }}</div>
-                        <div class="text-sm text-gray-600 mt-1">{{ slot.description }}</div>
-                      </div>
-                    </td>
-                    <td v-for="day in ['day1', 'day2', 'day3', 'day4']" :key="day" class="border border-gray-300 px-2 py-2">
-                      <USelect
-                        v-model="formData.schedule[slot.time][day]"
-                        :options="detailedGoalOptions"
-                        placeholder="選擇細目標"
-                        size="sm"
-                      />
-                    </td>
-                  </tr>
-
-                  <!-- 隨機教學 -->
-                  <tr>
-                    <td class="border border-gray-300 px-4 py-3 font-medium bg-gray-50">
-                      <div class="flex items-center justify-center">
-                        <div class="text-base font-semibold text-gray-800">※隨機教學</div>
-                      </div>
-                    </td>
-                    <td v-for="day in ['day1', 'day2', 'day3', 'day4'] as const" :key="day" class="border border-gray-300 px-2 py-2">
-                      <USelect
-                        v-model="formData.randomTeaching[day as keyof typeof formData.randomTeaching]"
-                        :options="detailedGoalOptions"
-                        placeholder="選擇細目標"
-                        size="sm"
-                      />
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="flex justify-between items-center">
-              <UButton color="gray" variant="outline" @click="previousStep">
-                上一步
-              </UButton>
-              
-              <!-- 評分標準說明 -->
-              <UPopover mode="hover" :popper="{ placement: 'top' }">
-                <UButton 
-                  color="gray" 
-                  variant="soft" 
-                  icon="i-heroicons-information-circle"
-                >
-                  評分標準說明
-                </UButton>
-
-                <template #panel>
-                  <div class="p-6 bg-white rounded-lg shadow-xl max-w-4xl">
-                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
-                      <UIcon name="i-heroicons-information-circle" class="mr-2 text-blue-600" />
-                      評分標準說明
-                    </h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <h4 class="font-bold text-blue-700 mb-2">A - 達成度</h4>
-                        <ul class="space-y-1 text-gray-600">
-                          <li>0: 0%</li>
-                          <li>1: 達成25%</li>
-                          <li>2: 達成50%</li>
-                          <li>3: 達成75%</li>
-                          <li>4: 達成100%</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 class="font-bold text-green-700 mb-2">B - 量</h4>
-                        <ul class="space-y-1 text-gray-600">
-                          <li>0: 0</li>
-                          <li>1: 完成1/4</li>
-                          <li>2: 完成2/4</li>
-                          <li>3: 完成3/4</li>
-                          <li>4: 全部完成</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 class="font-bold text-orange-700 mb-2">C - 協助方式</h4>
-                        <ul class="space-y-1 text-gray-600">
-                          <li>0: 完全協助</li>
-                          <li>1: 肢體協助</li>
-                          <li>2: 手勢指示</li>
-                          <li>3: 口頭提示</li>
-                          <li>4: 獨立完成</li>
-                        </ul>
-                      </div>
-                      <div>
-                        <h4 class="font-bold text-purple-700 mb-2">D - 反應程度</h4>
-                        <ul class="space-y-1 text-gray-600">
-                          <li>0: 無反應</li>
-                          <li>1: 1/4正確</li>
-                          <li>2: 2/4正確</li>
-                          <li>3: 3/4正確</li>
-                          <li>4: 全部正確</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-              </UPopover>
-
-              <div class="space-x-4">
-                <UButton color="gray" variant="outline" @click="router.push('/weekly-plan-list')">
-                  取消
-                </UButton>
-                <UButton @click="saveWeeklyPlan" :loading="saving">
-                  儲存
-                </UButton>
+        <div class="space-y-6">
+          <!-- 日期輸入 -->
+          <div class="grid grid-cols-2 gap-6 mb-6">
+            <UFormGroup label="日期1" class="space-y-2">
+              <div class="flex items-center gap-2">
+                <UInput v-model="formData.dates.day1.start" type="date" class="flex-1" />
+                <span class="text-gray-500 font-medium">~</span>
+                <UInput v-model="formData.dates.day1.end" type="date" class="flex-1" />
               </div>
-            </div>
+            </UFormGroup>
+            <UFormGroup label="日期2" class="space-y-2">
+              <div class="flex items-center gap-2">
+                <UInput v-model="formData.dates.day2.start" type="date" class="flex-1" />
+                <span class="text-gray-500 font-medium">~</span>
+                <UInput v-model="formData.dates.day2.end" type="date" class="flex-1" />
+              </div>
+            </UFormGroup>
+            <UFormGroup label="日期3" class="space-y-2">
+              <div class="flex items-center gap-2">
+                <UInput v-model="formData.dates.day3.start" type="date" class="flex-1" />
+                <span class="text-gray-500 font-medium">~</span>
+                <UInput v-model="formData.dates.day3.end" type="date" class="flex-1" />
+              </div>
+            </UFormGroup>
+            <UFormGroup label="日期4" class="space-y-2">
+              <div class="flex items-center gap-2">
+                <UInput v-model="formData.dates.day4.start" type="date" class="flex-1" />
+                <span class="text-gray-500 font-medium">~</span>
+                <UInput v-model="formData.dates.day4.end" type="date" class="flex-1" />
+              </div>
+            </UFormGroup>
           </div>
-        </UCard>
-      </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full border-collapse border border-gray-300">
+              <thead>
+                <tr class="bg-gray-100">
+                  <th class="border border-gray-300 px-4 py-2 text-center w-48">時間</th>
+                  <th class="border border-gray-300 px-4 py-2">
+                    <div class="text-center leading-tight" v-html="formatDateRange(formData.dates.day1) || '日期1'"></div>
+                  </th>
+                  <th class="border border-gray-300 px-4 py-2">
+                    <div class="text-center leading-tight" v-html="formatDateRange(formData.dates.day2) || '日期2'"></div>
+                  </th>
+                  <th class="border border-gray-300 px-4 py-2">
+                    <div class="text-center leading-tight" v-html="formatDateRange(formData.dates.day3) || '日期3'"></div>
+                  </th>
+                  <th class="border border-gray-300 px-4 py-2">
+                    <div class="text-center leading-tight" v-html="formatDateRange(formData.dates.day4) || '日期4'"></div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- 08:30-09:00 幼兒來園 -->
+                <tr>
+                  <td class="border border-gray-300 px-4 py-3 font-medium bg-gray-50">
+                    <div class="flex flex-col items-center justify-center">
+                      <div class="text-base font-semibold text-gray-800">08:30-09:00</div>
+                      <div class="text-sm text-gray-600 mt-1">幼兒來園</div>
+                    </div>
+                  </td>
+                  <td colspan="4" class="border border-gray-300 px-4 py-2 text-center bg-gray-100">
+                    口語提示下，收拾書包的物品到指定物品籃中。
+                  </td>
+                </tr>
+
+                <!-- 09:00-09:10 早會律動 -->
+                <tr>
+                  <td class="border border-gray-300 px-4 py-3 font-medium bg-gray-50">
+                    <div class="flex flex-col items-center justify-center">
+                      <div class="text-base font-semibold text-gray-800">09:00-09:10</div>
+                      <div class="text-sm text-gray-600 mt-1">早會律動</div>
+                    </div>
+                  </td>
+                  <td colspan="4" class="border border-gray-300 px-4 py-2 text-center bg-gray-100">
+                    能跟著音樂模仿簡單動作。
+                  </td>
+                </tr>
+
+                <!-- 09:10-09:20 轉換時間 -->
+                <tr>
+                  <td class="border border-gray-300 px-4 py-3 font-medium bg-gray-50">
+                    <div class="flex flex-col items-center justify-center">
+                      <div class="text-base font-semibold text-gray-800">09:10-09:20</div>
+                      <div class="text-sm text-gray-600 mt-1">轉換時間</div>
+                    </div>
+                  </td>
+                  <td colspan="4" class="border border-gray-300 px-4 py-2 text-center bg-gray-100">
+                  </td>
+                </tr>
+
+                <!-- 可編輯時段（09:20-16:30）使用下拉選單選擇細目標 -->
+                <tr v-for="slot in editableTimeSlots" :key="slot.time">
+                  <td class="border border-gray-300 px-4 py-3 font-medium bg-gray-50">
+                    <div class="flex flex-col items-center justify-center">
+                      <div class="text-base font-semibold text-gray-800">{{ slot.time }}</div>
+                      <div class="text-sm text-gray-600 mt-1">{{ slot.description }}</div>
+                    </div>
+                  </td>
+                  <td v-for="day in ['day1', 'day2', 'day3', 'day4']" :key="day" class="border border-gray-300 px-2 py-2">
+                    <USelect
+                      v-model="formData.schedule[slot.time][day]"
+                      :options="detailedGoalOptions"
+                      placeholder="選擇細目標"
+                      size="sm"
+                    />
+                  </td>
+                </tr>
+
+                <!-- 隨機教學 -->
+                <tr>
+                  <td class="border border-gray-300 px-4 py-3 font-medium bg-gray-50">
+                    <div class="flex items-center justify-center">
+                      <div class="text-base font-semibold text-gray-800">※隨機教學</div>
+                    </div>
+                  </td>
+                  <td v-for="day in ['day1', 'day2', 'day3', 'day4'] as const" :key="day" class="border border-gray-300 px-2 py-2">
+                    <USelect
+                      v-model="formData.randomTeaching[day as keyof typeof formData.randomTeaching]"
+                      :options="detailedGoalOptions"
+                      placeholder="選擇細目標"
+                      size="sm"
+                    />
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <template #footer>
+          <FormFooter
+            :show-prev="true"
+            :show-next="false"
+            :loading="saving"
+            @prev="currentStep = 0"
+            @cancel="router.push('/weekly-plan-list')"
+            @save="saveWeeklyPlan"
+          />
+        </template>
+      </UCard>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { collection, addDoc, doc, getDoc, updateDoc, query, where, getDocs, getFirestore } from 'firebase/firestore'
-import { getApp } from 'firebase/app'
+import { collection, addDoc, doc, getDoc, updateDoc, query, where, getDocs } from 'firebase/firestore'
 import { useAuth } from '~/composables/useAuth'
+import { useFirestore } from '~/composables/useFirestore'
+import { useFormSession } from '~/composables/useFormSession'
 
 const router = useRouter()
 const route = useRoute()
 const { user } = useAuth()
-
-const useFirestore = () => {
-  return getFirestore(getApp())
-}
+const { getDb } = useFirestore()
+const { saveStep, restoreStep, clearStep, editingId } = useFormSession('weekly-plan')
 
 const currentStep = ref(0)
 const saving = ref(false)
 const detailedGoals = ref<any[]>([])
 const detailedGoalOptions = ref<any[]>([])
 const studentOptions = ref<Array<{ label: string; value: string }>>([])
+
+// 監聽步驟變化並保存到 sessionStorage（僅編輯模式）
+watch(currentStep, (newStep) => {
+  saveStep(newStep)
+})
 
 const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
 
@@ -364,7 +329,7 @@ const loadStudents = async () => {
   if (!user.value) return
 
   try {
-    const db = useFirestore()
+    const db = getDb()
     const q = query(
       collection(db, 'detailed_goal_forms'),
       where('userId', '==', user.value.uid)
@@ -403,7 +368,7 @@ const loadDetailedGoals = async () => {
   if (!user.value || !formData.studentName) return
 
   try {
-    const db = useFirestore()
+    const db = getDb()
     const q = query(
       collection(db, 'detailed_goal_forms'),
       where('userId', '==', user.value.uid),
@@ -483,7 +448,7 @@ const saveWeeklyPlan = async () => {
   saving.value = true
 
   try {
-    const db = useFirestore()
+    const db = getDb()
     const weeklyPlanData = {
       userId: user.value.uid,
       unitTheme: formData.unitTheme,
@@ -498,9 +463,9 @@ const saveWeeklyPlan = async () => {
       updatedAt: new Date().toISOString()
     }
 
-    if (route.query.id) {
+    if (editingId.value) {
       // 更新現有記錄
-      const docRef = doc(db, 'weekly_plans', route.query.id as string)
+      const docRef = doc(db, 'weekly_plans', editingId.value)
       await updateDoc(docRef, {
         ...weeklyPlanData,
         updatedAt: new Date().toISOString()
@@ -518,6 +483,7 @@ const saveWeeklyPlan = async () => {
       })
     }
 
+    clearStep()
     router.push('/weekly-plan-list')
   } catch (error) {
     console.error('儲存週計劃失敗：', error)
@@ -532,11 +498,11 @@ const saveWeeklyPlan = async () => {
 
 // 載入現有記錄（編輯模式）
 const loadWeeklyPlan = async () => {
-  if (!route.query.id || !user.value) return
+  if (!editingId.value || !user.value) return
 
   try {
-    const db = useFirestore()
-    const docRef = doc(db, 'weekly_plans', route.query.id as string)
+    const db = getDb()
+    const docRef = doc(db, 'weekly_plans', editingId.value)
     const docSnap = await getDoc(docRef)
 
     if (docSnap.exists()) {
@@ -586,7 +552,21 @@ const loadWeeklyPlan = async () => {
 }
 
 onMounted(async () => {
+  // 恢復步驟狀態（僅編輯模式）
+  if (editingId.value) {
+    const savedStep = restoreStep()
+    if (savedStep > 0) {
+      currentStep.value = savedStep
+    }
+  }
+  
   await loadStudents()
   loadWeeklyPlan()
+})
+
+// 離開頁面前不清除 sessionStorage（允許頁面切換後恢復步驟）
+// 只在表單成功提交後才清除
+onBeforeUnmount(() => {
+  // sessionStorage 保留，以便用戶返回時恢復步驟
 })
 </script>

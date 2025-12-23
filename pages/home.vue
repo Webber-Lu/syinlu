@@ -42,96 +42,11 @@
         <!-- 歡迎區 -->
         <div class="mb-8 text-center">
           <h1 class="text-4xl font-bold text-white mb-2 drop-shadow-lg">歡迎回來！</h1>
-          <p class="text-white/90 text-lg">這是您的個人首頁</p>
+          <p class="text-white/90 text-lg">選擇您要使用的功能</p>
         </div>
 
-        <!-- 個人資訊卡片 -->
-        <UCard 
-          :ui="{ 
-            base: 'backdrop-blur-md bg-white/95 border-2 border-white/60',
-            body: { padding: 'p-6 sm:p-8' }
-          }"
-        >
-          <template #header>
-            <div class="flex items-center space-x-2">
-              <UIcon name="i-heroicons-user-circle" class="w-6 h-6 text-green-600" />
-              <h2 class="text-2xl font-bold text-gray-800">個人資訊</h2>
-            </div>
-          </template>
-
-          <div class="space-y-6">
-            <!-- Email -->
-            <UFormGroup label="Email 帳號">
-              <UInput 
-                :value="user.email" 
-                readonly 
-                size="lg"
-                icon="i-heroicons-envelope"
-              />
-            </UFormGroup>
-
-            <!-- 顯示名稱 -->
-            <UFormGroup label="顯示名稱">
-              <div class="space-y-3">
-                <UInput 
-                  v-if="isEditingName"
-                  v-model="newDisplayName"
-                  placeholder="請輸入顯示名稱"
-                  size="lg"
-                  icon="i-heroicons-user"
-                  @keyup.enter="handleUpdateName"
-                />
-                <UInput 
-                  v-else
-                  :value="displayNameValue"
-                  readonly
-                  size="lg"
-                  icon="i-heroicons-user"
-                />
-                
-                <!-- 操作按鈕 -->
-                <div class="flex gap-2">
-                  <UButton 
-                    v-if="!isEditingName"
-                    color="primary"
-                    @click="startEditName"
-                  >
-                    編輯名稱
-                  </UButton>
-                  <template v-else>
-                    <UButton 
-                      color="green"
-                      @click="handleUpdateName"
-                      :loading="isUpdatingName"
-                    >
-                      {{ isUpdatingName ? '儲存中...' : '儲存' }}
-                    </UButton>
-                    <UButton 
-                      color="gray"
-                      variant="soft"
-                      @click="cancelEditName"
-                      :disabled="isUpdatingName"
-                    >
-                      取消
-                    </UButton>
-                  </template>
-                </div>
-
-                <!-- 錯誤訊息 -->
-                <UAlert 
-                  v-if="updateError"
-                  color="red"
-                  variant="soft"
-                  :title="updateError"
-                  @close="updateError = null"
-                />
-              </div>
-            </UFormGroup>
-          </div>
-        </UCard>
-
         <!-- 快速功能區 -->
-        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- ISP 表單卡片 -->
           <UCard 
             class="hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-green-300"
@@ -144,6 +59,40 @@
               <div class="flex-1">
                 <h3 class="text-lg font-bold text-gray-800 mb-1">ISP 表單</h3>
                 <p class="text-sm text-gray-600">個別化服務計畫目標擬定討論記錄</p>
+              </div>
+              <UIcon name="i-heroicons-arrow-right" class="w-5 h-5 text-gray-400" />
+            </div>
+          </UCard>
+
+          <!-- 細目標卡片 -->
+          <UCard 
+            class="hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-purple-300"
+            @click="navigateTo('/detailed-goal-list')"
+          >
+            <div class="flex items-start space-x-4">
+              <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
+                <UIcon name="i-heroicons-clipboard-document-list" class="w-6 h-6 text-purple-600" />
+              </div>
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-800 mb-1">細目標管理</h3>
+                <p class="text-sm text-gray-600">長程、短程與細目標階層管理</p>
+              </div>
+              <UIcon name="i-heroicons-arrow-right" class="w-5 h-5 text-gray-400" />
+            </div>
+          </UCard>
+
+          <!-- 週計劃卡片 -->
+          <UCard 
+            class="hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-orange-300"
+            @click="navigateTo('/weekly-plan-list')"
+          >
+            <div class="flex items-start space-x-4">
+              <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <UIcon name="i-heroicons-calendar-days" class="w-6 h-6 text-orange-600" />
+              </div>
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-800 mb-1">週計劃管理</h3>
+                <p class="text-sm text-gray-600">週計劃時段排程管理</p>
               </div>
               <UIcon name="i-heroicons-arrow-right" class="w-5 h-5 text-gray-400" />
             </div>
@@ -165,6 +114,23 @@
               <UIcon name="i-heroicons-arrow-right" class="w-5 h-5 text-gray-400" />
             </div>
           </UCard>
+
+          <!-- 月況管理卡片 -->
+          <UCard 
+            class="hover:shadow-xl transition-all cursor-pointer border-2 border-transparent hover:border-pink-300"
+            @click="navigateTo('/monthly-status-list')"
+          >
+            <div class="flex items-start space-x-4">
+              <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center flex-shrink-0">
+                <UIcon name="i-heroicons-document-chart-bar" class="w-6 h-6 text-pink-600" />
+              </div>
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-800 mb-1">月況管理</h3>
+                <p class="text-sm text-gray-600">每月幼生學習與行為表現記錄</p>
+              </div>
+              <UIcon name="i-heroicons-arrow-right" class="w-5 h-5 text-gray-400" />
+            </div>
+          </UCard>
         </div>
       </div>
     </div>
@@ -175,12 +141,8 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
 
-const { user, loading, initAuth, logout, updateDisplayName } = useAuth()
+const { user, loading, initAuth, logout } = useAuth()
 const isLoading = ref(false)
-const isEditingName = ref(false)
-const isUpdatingName = ref(false)
-const newDisplayName = ref('')
-const updateError = ref<string | null>(null)
 
 let unsubscribe: (() => void) | null = null
 
@@ -199,47 +161,10 @@ watch(user, (newUser) => {
   }
 })
 
-// 計算顯示名稱
-const displayNameValue = computed(() => {
-  if (!user.value) return '未設定'
-  if (user.value.displayName) return user.value.displayName
-  if (user.value.email) {
-    const emailName = user.value.email.split('@')[0]
-    return emailName || '未設定'
-  }
-  return '未設定'
-})
-
 const getUserInitial = () => {
   if (!user.value) return 'U'
   const name = user.value.displayName || user.value.email || 'User'
   return name.charAt(0).toUpperCase()
-}
-
-const startEditName = () => {
-  isEditingName.value = true
-  newDisplayName.value = user.value?.displayName || ''
-  updateError.value = null
-}
-
-const cancelEditName = () => {
-  isEditingName.value = false
-  newDisplayName.value = ''
-}
-
-const handleUpdateName = async () => {
-  if (!newDisplayName.value.trim()) return
-  
-  isUpdatingName.value = true
-  updateError.value = null
-  try {
-    await updateDisplayName(newDisplayName.value.trim())
-    isEditingName.value = false
-  } catch (err: any) {
-    updateError.value = err.message || '更新名稱失敗，請稍後再試'
-  } finally {
-    isUpdatingName.value = false
-  }
 }
 
 const handleLogout = async () => {

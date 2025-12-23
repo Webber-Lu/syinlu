@@ -606,30 +606,27 @@
 </template>
 
 <script setup lang="ts">
-import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, getDocs, getDoc, orderBy, limit, getFirestore } from 'firebase/firestore'
-import { getApp } from 'firebase/app'
+import { collection, addDoc, updateDoc, doc, serverTimestamp, query, where, getDocs, getDoc, orderBy, limit } from 'firebase/firestore'
 import { useAuth } from '~/composables/useAuth'
+import { useFirestore } from '~/composables/useFirestore'
+import { useFormSession } from '~/composables/useFormSession'
 import { useIspWordExport } from '~/composables/useIspWordExport'
 
 const { user } = useAuth()
+const { getDb } = useFirestore()
 const { generateIspWord } = useIspWordExport()
 const route = useRoute()
+const { saveStep, restoreStep, clearStep, editingId } = useFormSession('isp')
 
 // URL 參數
-const editingFormId = ref<string | null>(route.query.edit as string || null)
+const editingFormId = computed(() => editingId.value)
 const isViewMode = ref(!!route.query.view)
 const isNewForm = ref(!!route.query.new)
 
-// 步驟定義
-const steps = ref(['基本資訊', '選擇領域', '初擬目標', '會議確認'])
+// 步驟控制
+const steps = ref(['基本資料', '選擇領域', '初擬目標', '確認目標'])
 const currentStep = ref(0)
-const draftId = ref<string | null>(editingFormId.value || null)
-
-// 取得 Firestore 實例
-const getDb = () => {
-  const app = getApp()
-  return getFirestore(app)
-}
+const draftId = ref('')
 
 // 發展領域定義
 const domains = ref([
@@ -1153,6 +1150,11 @@ const stopAutoSave = () => {
   }
 }
 
+// 監聽步驟變化並保存到 sessionStorage（僅編輯模式）
+watch(currentStep, (newStep) => {
+  saveStep(newStep)
+})
+
 // 監聽用戶狀態變化
 watch(user, async (newUser) => {
   if (newUser) {
@@ -1175,6 +1177,14 @@ watch(user, async (newUser) => {
 
 // 頁面載入時載入表單
 onMounted(async () => {
+  // 恢復步驟狀態（僅編輯模式）
+  if (editingFormId.value && !isViewMode.value) {
+    const savedStep = restoreStep()
+    if (savedStep > 0) {
+      currentStep.value = savedStep
+    }
+  }
+  
   if (user.value) {
     // 編輯模式：載入指定表單
     if (editingFormId.value) {
@@ -1197,6 +1207,7 @@ onBeforeUnmount(() => {
   if (user.value && (formData.value.studentName || selectedDomains.value.length > 0)) {
     saveDraft(false)
   }
+  // sessionStorage 保留，以便用戶返回時恢復步驟
 })
 
 // 返回列表
