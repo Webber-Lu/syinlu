@@ -10,37 +10,15 @@
         <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full mb-4 shadow-lg">
           <UIcon name="i-heroicons-document-text" class="w-8 h-8 text-white" />
         </div>
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">ISP 目標擬定討論記錄表</h1>
-        <p class="text-gray-600">私立心路桃園發展中心</p>
+        <h1 class="text-3xl font-bold text-gray-800">ISP 目標擬定討論記錄表</h1>
       </div>
 
       <!-- 進度指示器 -->
-      <div class="mb-8">
-        <UCard>
-          <div class="flex justify-between items-center">
-            <div 
-              v-for="(step, idx) in steps" 
-              :key="idx"
-              class="flex-1 flex items-center"
-            >
-              <div class="flex flex-col items-center flex-1">
-                <div 
-                  class="w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all"
-                  :class="currentStep >= idx ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'"
-                >
-                  {{ idx + 1 }}
-                </div>
-                <span class="mt-2 text-xs font-medium text-gray-600">{{ step }}</span>
-              </div>
-              <div 
-                v-if="idx < steps.length - 1"
-                class="flex-1 h-1 mx-2 transition-all"
-                :class="currentStep > idx ? 'bg-green-500' : 'bg-gray-200'"
-              ></div>
-            </div>
-          </div>
-        </UCard>
-      </div>
+      <StepIndicator
+        :steps="steps"
+        :current-step="currentStep"
+        color="green"
+      />
 
       <!-- 步驟 1: 基本資訊 -->
       <UCard v-if="currentStep === 0" class="mb-6">
@@ -109,9 +87,8 @@
         </div>
 
         <template #footer>
-          <div class="flex justify-between">
+          <div v-if="isViewMode" class="flex justify-start">
             <UButton 
-              v-if="isViewMode"
               color="gray" 
               variant="soft"
               size="lg"
@@ -120,16 +97,15 @@
               <UIcon name="i-heroicons-arrow-left" class="mr-2" />
               返回列表
             </UButton>
-            <div v-else></div>
-            <UButton 
-              color="green" 
-              size="lg"
-              @click="nextStep"
-            >
-              下一步：選擇發展領域
-              <UIcon name="i-heroicons-arrow-right" class="ml-2" />
-            </UButton>
           </div>
+          <FormFooter
+            v-else
+            :show-prev="false"
+            :show-next="true"
+            color="green"
+            @next="nextStep"
+            @cancel="navigateTo('/isp-list')"
+          />
         </template>
       </UCard>
 
@@ -205,7 +181,7 @@
               @click="nextStep"
               :disabled="!isViewMode && selectedDomains.length === 0"
             >
-              下一步：填寫初擬目標
+              下一步
               <UIcon name="i-heroicons-arrow-right" class="ml-2" />
             </UButton>
           </div>
@@ -352,7 +328,7 @@
                 size="lg"
                 @click="nextStep"
               >
-                下一步：會議後確認
+                下一步
                 <UIcon name="i-heroicons-arrow-right" class="ml-2" />
               </UButton>
             </div>
@@ -535,37 +511,30 @@
 
         <UCard>
           <template #footer>
-            <div class="flex justify-between">
+            <FormFooter
+              v-if="!isViewMode"
+              :show-prev="true"
+              :show-next="false"
+              :show-export="true"
+              :loading="false"
+              :export-loading="isExporting"
+              size="lg"
+              hide-cancel
+              @prev="prevStep"
+              @save="saveAndReturn"
+              @export="exportCurrentForm"
+            />
+            <div v-else class="flex justify-between">
               <UButton 
                 color="gray" 
                 variant="soft"
                 size="lg"
-                @click="isViewMode ? navigateTo('/isp-list') : prevStep()"
+                @click="navigateTo('/isp-list')"
               >
-                <UIcon :name="isViewMode ? 'i-heroicons-arrow-left' : 'i-heroicons-arrow-left'" class="mr-2" />
-                {{ isViewMode ? '返回列表' : '上一步' }}
+                <UIcon name="i-heroicons-arrow-left" class="mr-2" />
+                返回列表
               </UButton>
-              <div v-if="!isViewMode" class="flex gap-3">
-                <UButton 
-                  color="gray" 
-                  size="lg"
-                  @click="saveAndReturn"
-                >
-                  <UIcon name="i-heroicons-document" class="mr-2" />
-                  儲存報告
-                </UButton>
-                <UButton 
-                  color="green" 
-                  size="lg"
-                  @click="exportCurrentForm"
-                  :loading="isExporting"
-                >
-                  <UIcon name="i-heroicons-arrow-down-tray" class="mr-2" />
-                  {{ isExporting ? '匯出中...' : '匯出' }}
-                </UButton>
-              </div>
               <UButton 
-                v-else
                 color="green" 
                 size="lg"
                 @click="currentStep < steps.length - 1 ? nextStep() : navigateTo('/isp-list')"
@@ -823,11 +792,6 @@ const prevStep = () => {
 
 // 儲存草稿到 Firestore
 const saveDraft = async (showAlert = true) => {
-  if (!user.value) {
-    console.log('用戶未登入，無法儲存草稿')
-    return
-  }
-
   try {
     const db = getDb()
     
@@ -953,11 +917,6 @@ const saveAndReturn = async () => {
 
 // 匯出當前表單為 Word
 const exportCurrentForm = async () => {
-  if (!user.value) {
-    alert('請先登入')
-    return
-  }
-
   // 驗證必填欄位
   if (!formData.value.studentName || !formData.value.sessionNumber || 
       !formData.value.startDate || !formData.value.endDate || 
@@ -1059,8 +1018,6 @@ const exportCurrentForm = async () => {
 
 // 載入指定表單或最新草稿
 const loadForm = async (formId?: string) => {
-  if (!user.value) return
-
   try {
     const db = getDb()
     

@@ -11,37 +11,15 @@
         <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full mb-4 shadow-lg">
           <UIcon name="i-heroicons-chart-bar" class="w-8 h-8 text-white" />
         </div>
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">教育/治療目標成效評量</h1>
-        <p class="text-gray-600">私立心路桃園發展中心</p>
+        <h1 class="text-3xl font-bold text-gray-800">教育/治療目標成效評量</h1>
       </div>
 
       <!-- 進度指示器 -->
-      <div class="mb-8">
-        <UCard>
-          <div class="flex justify-between items-center">
-            <div 
-              v-for="(step, idx) in steps" 
-              :key="idx"
-              class="flex-1 flex items-center"
-            >
-              <div class="flex flex-col items-center flex-1">
-                <div 
-                  class="w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all"
-                  :class="currentStep >= idx ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-500'"
-                >
-                  {{ idx + 1 }}
-                </div>
-                <span class="mt-2 text-xs font-medium text-gray-600">{{ step }}</span>
-              </div>
-              <div 
-                v-if="idx < steps.length - 1"
-                class="flex-1 h-1 mx-2 transition-all"
-                :class="currentStep > idx ? 'bg-blue-500' : 'bg-gray-200'"
-              ></div>
-            </div>
-          </div>
-        </UCard>
-      </div>
+      <StepIndicator
+        :steps="steps"
+        :current-step="currentStep"
+        color="blue"
+      />
 
       <!-- 步驟 1: 匯入 ISP 目標 -->
       <UCard v-if="currentStep === 0" class="mb-6">
@@ -103,12 +81,13 @@
         </div>
 
         <template #footer v-if="hasImported">
-          <div class="flex justify-end">
-            <UButton color="blue" size="lg" @click="nextStep">
-              下一步
-              <UIcon name="i-heroicons-arrow-right" class="ml-2" />
-            </UButton>
-          </div>
+          <FormFooter
+            :show-prev="false"
+            :show-next="true"
+            color="blue"
+            @next="nextStep"
+            @cancel="navigateTo('/evaluation-list')"
+          />
         </template>
       </UCard>
 
@@ -232,16 +211,15 @@
         </div>
 
         <template #footer>
-          <div class="flex justify-between">
-            <UButton color="gray" size="lg" @click="prevStep">
-              <UIcon name="i-heroicons-arrow-left" class="mr-2" />
-              上一步
-            </UButton>
-            <UButton color="blue" size="lg" @click="nextStep">
-              下一步
-              <UIcon name="i-heroicons-arrow-right" class="ml-2" />
-            </UButton>
-          </div>
+          <FormFooter
+            :show-prev="true"
+            :show-next="true"
+            color="blue"
+            size="lg"
+            hide-cancel
+            @prev="prevStep"
+            @next="nextStep"
+          />
         </template>
       </UCard>
 
@@ -492,31 +470,24 @@
         </div>
 
         <template #footer>
-          <div class="flex justify-between">
-            <UButton color="gray" size="lg" @click="isViewMode ? navigateTo('/evaluation-list') : prevStep()">
+          <FormFooter
+            v-if="!isViewMode"
+            :show-prev="true"
+            :show-next="false"
+            :show-export="true"
+            :loading="isSubmitting"
+            :export-loading="isExporting"
+            size="lg"
+            hide-cancel
+            @prev="prevStep"
+            @save="submitForm"
+            @export="exportForm"
+          />
+          <div v-else class="flex justify-between">
+            <UButton color="gray" size="lg" @click="navigateTo('/evaluation-list')">
               <UIcon name="i-heroicons-arrow-left" class="mr-2" />
-              {{ isViewMode ? '返回列表' : '上一步' }}
+              返回列表
             </UButton>
-            <div v-if="!isViewMode" class="flex gap-3">
-              <UButton 
-                color="gray" 
-                size="lg"
-                @click="submitForm"
-                :loading="isSubmitting"
-              >
-                <UIcon name="i-heroicons-document" class="mr-2" />
-                儲存報告
-              </UButton>
-              <UButton 
-                color="green" 
-                size="lg"
-                @click="exportForm"
-                :loading="isExporting"
-              >
-                <UIcon name="i-heroicons-arrow-down-tray" class="mr-2" />
-                {{ isExporting ? '匯出中...' : '匯出' }}
-              </UButton>
-            </div>
           </div>
         </template>
       </UCard>
@@ -612,7 +583,7 @@ const isExporting = ref(false)
 const hasImported = ref(false)
 
 // 步驟控制
-const steps = ref(['基本資料', '匯入 ISP', '目標評量', '結果總結'])
+const steps = ref(['匯入目標', '執行情境', '起訖日期', '成效評量', '結果總結'])
 const currentStep = ref(0)
 
 // ISP 表單選項

@@ -11,36 +11,15 @@
         <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-400 to-red-500 rounded-full mb-4 shadow-lg">
           <UIcon name="i-heroicons-document-chart-bar" class="w-8 h-8 text-white" />
         </div>
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">月況管理</h1>
-        <p class="text-gray-600">每月幼生學習與行為表現記錄</p>
+        <h1 class="text-3xl font-bold text-gray-800">月況管理</h1>
       </div>
 
       <!-- 步驟指示器 -->
-      <div class="mb-8">
-        <div class="flex items-center justify-center space-x-4">
-          <div v-for="step in 2" :key="step" class="flex items-center">
-            <div class="flex items-center">
-              <div 
-                :class="[
-                  'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all',
-                  currentStep >= step ? 'bg-pink-600 text-white' : 'bg-gray-200 text-gray-500'
-                ]"
-              >
-                {{ step }}
-              </div>
-              <span 
-                :class="[
-                  'ml-2 font-medium',
-                  currentStep >= step ? 'text-pink-600' : 'text-gray-400'
-                ]"
-              >
-                {{ ['基本資料', '行為表現'][step - 1] }}
-              </span>
-            </div>
-            <div v-if="step < 2" class="w-16 h-1 mx-4" :class="currentStep >= step ? 'bg-pink-600' : 'bg-gray-200'"></div>
-          </div>
-        </div>
-      </div>
+      <StepIndicator
+        :steps="['基本資料', '行為表現']"
+        :current-step="currentStep - 1"
+        color="pink"
+      />
 
       <!-- 步驟 1: 基本資料 -->
       <UCard v-if="currentStep === 1" class="mb-6">
@@ -178,10 +157,14 @@
           <FormFooter
             :show-prev="true"
             :show-next="false"
+            :show-export="true"
             :loading="saving"
+            :export-loading="exporting"
+            size="lg"
+            hide-cancel
             @prev="previousStep"
-            @cancel="cancel"
             @save="saveForm"
+            @export="exportForm"
           />
         </template>
       </UCard>
@@ -207,6 +190,7 @@ const { saveStep, restoreStep, clearStep, editingId } = useFormSession('monthly-
 // 狀態管理
 const currentStep = ref(1)
 const saving = ref(false)
+const exporting = ref(false)
 const loadingGoals = ref(false)
 const selectedDetailedGoalId = ref('')
 const detailedGoals = ref<Array<{ id: string; studentName: string; sessionNumber: string }>>([])  
@@ -412,6 +396,48 @@ const saveForm = async () => {
     alert('儲存失敗')
   } finally {
     saving.value = false
+  }
+}
+
+// 匯出表單
+const exportForm = async () => {
+  if (exporting.value) return
+
+  // 驗證必填欄位
+  if (!formData.value.detailedGoalId || !formData.value.startDate || 
+      !formData.value.endDate || !formData.value.teacherName) {
+    alert('請填寫所有必填欄位')
+    return
+  }
+
+  exporting.value = true
+  try {
+    const db = getDb()
+    const formId = editingId.value
+    const data = {
+      ...formData.value,
+      userId: user.value?.uid,
+      updatedAt: new Date().toISOString()
+    }
+
+    if (formId) {
+      await updateDoc(doc(db, 'monthly_status', formId), data)
+    } else {
+      await addDoc(collection(db, 'monthly_status'), {
+        ...data,
+        createdAt: new Date().toISOString()
+      })
+    }
+
+    clearStep()
+    // TODO: 實作 Word 匯出功能
+    alert('月況已儲存！Word 匯出功能開發中...')
+    router.push('/monthly-status-list')
+  } catch (error) {
+    console.error('匯出失敗:', error)
+    alert('匯出失敗')
+  } finally {
+    exporting.value = false
   }
 }
 

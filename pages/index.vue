@@ -25,7 +25,7 @@
             <span class="text-4xl">🌿</span>
           </div>
           <h1 class="text-3xl font-bold bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 bg-clip-text text-transparent drop-shadow-sm">心路基金會</h1>
-          <p class="text-base text-green-700 font-medium">{{ isRegisterMode ? '開啟您的療癒旅程' : '歡迎' }}</p>  
+          <p class="text-base text-green-700 font-medium">{{ isRegisterMode ? '請註冊新帳號' : '歡迎' }}</p>  
         </div>
 
         <!-- 錯誤訊息 -->

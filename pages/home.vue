@@ -42,7 +42,7 @@
         <!-- 歡迎區 -->
         <div class="mb-8 text-center">
           <h1 class="text-4xl font-bold text-white mb-2 drop-shadow-lg">歡迎回來！</h1>
-          <p class="text-white/90 text-lg">選擇您要使用的功能</p>
+          <p class="text-white/90 text-lg">選擇您所需要的表單</p>
         </div>
 
         <!-- 快速功能區 -->

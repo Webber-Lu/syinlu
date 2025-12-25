@@ -11,36 +11,15 @@
         <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full mb-4 shadow-lg">
           <UIcon name="i-heroicons-clipboard-document-list" class="w-8 h-8 text-white" />
         </div>
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">細目標管理</h1>
-        <p class="text-gray-600">私立心路桃園發展中心</p>
+        <h1 class="text-3xl font-bold text-gray-800">細目標管理</h1>
       </div>
 
       <!-- 步驟指示器 -->
-      <div class="mb-8">
-        <div class="flex items-center justify-center space-x-4">
-          <div v-for="step in 3" :key="step" class="flex items-center">
-            <div class="flex items-center">
-              <div 
-                :class="[
-                  'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all',
-                  currentStep >= step - 1 ? 'bg-purple-600 text-white' : 'bg-gray-200 text-gray-500'
-                ]"
-              >
-                {{ step }}
-              </div>
-              <span 
-                :class="[
-                  'ml-2 font-medium',
-                  currentStep >= step - 1 ? 'text-purple-600' : 'text-gray-400'
-                ]"
-              >
-                {{ ['匯入表單', '填寫細目標', '討論過程記錄'][step - 1] }}
-              </span>
-            </div>
-            <div v-if="step < 3" class="w-16 h-1 mx-4" :class="currentStep >= step ? 'bg-purple-600' : 'bg-gray-200'"></div>
-          </div>
-        </div>
-      </div>
+      <StepIndicator
+        :steps="['匯入表單', '填寫細目標', '討論過程記錄']"
+        :current-step="currentStep"
+        color="purple"
+      />
 
       <!-- 步驟 1: 匯入 ISP 表單 -->
       <UCard v-if="currentStep === 0" class="mb-6">
@@ -99,12 +78,13 @@
         </div>
 
         <template #footer v-if="hasImported">
-          <div class="flex justify-end">
-            <UButton color="purple" size="lg" @click="nextStep">
-              下一步
-              <UIcon name="i-heroicons-arrow-right" class="ml-2" />
-            </UButton>
-          </div>
+          <FormFooter
+            :show-prev="false"
+            :show-next="true"
+            color="purple"
+            @next="nextStep"
+            @cancel="navigateTo('/detailed-goal-list')"
+          />
         </template>
       </UCard>
 
@@ -262,16 +242,18 @@
         </div>
 
         <template #footer>
-          <div class="flex justify-between">
-            <UButton color="gray" size="lg" @click="prevStep">
-              <UIcon name="i-heroicons-arrow-left" class="mr-2" />
-              上一步
-            </UButton>
-            <UButton color="green" size="lg" @click="saveForm" :loading="isSaving">
-              <UIcon name="i-heroicons-document-check" class="mr-2" />
-              儲存
-            </UButton>
-          </div>
+          <FormFooter
+            :show-prev="true"
+            :show-next="false"
+            :show-export="true"
+            :loading="isSaving"
+            :export-loading="isExporting"
+            size="lg"
+            hide-cancel
+            @prev="prevStep"
+            @save="saveForm"
+            @export="exportForm"
+          />
         </template>
       </UCard>
 
@@ -295,6 +277,7 @@ const { saveStep, restoreStep, clearStep, editingId } = useFormSession('detailed
 const currentStep = ref(0)
 const isImporting = ref(false)
 const isSaving = ref(false)
+const isExporting = ref(false)
 const hasImported = ref(false)
 const editingFormId = computed(() => editingId.value)
 
@@ -529,12 +512,45 @@ const saveForm = async () => {
       alert('細目標已儲存！')
     }
     
+    clearStep()
     navigateTo('/detailed-goal-list')
   } catch (error) {
     console.error('儲存失敗:', error)
     alert('儲存失敗，請稍後再試')
   } finally {
     isSaving.value = false
+  }
+}
+
+// 匯出表單
+const exportForm = async () => {
+  try {
+    isExporting.value = true
+    const db = getDb()
+
+    const formDataToSave: any = {
+      userId: user.value?.uid,
+      ...formData.value,
+      updatedAt: serverTimestamp()
+    }
+
+    // 先保存到 Firestore
+    if (editingFormId.value) {
+      await updateDoc(doc(db, 'detailed_goal_forms', editingFormId.value), formDataToSave)
+    } else {
+      formDataToSave.createdAt = serverTimestamp()
+      await addDoc(collection(db, 'detailed_goal_forms'), formDataToSave)
+    }
+
+    clearStep()
+    // TODO: 實作 Word 匯出功能
+    alert('細目標已儲存！Word 匯出功能開發中...')
+    navigateTo('/detailed-goal-list')
+  } catch (error) {
+    console.error('匯出失敗:', error)
+    alert('匯出失敗，請稍後再試')
+  } finally {
+    isExporting.value = false
   }
 }
 

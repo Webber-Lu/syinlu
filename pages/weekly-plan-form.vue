@@ -8,36 +8,15 @@
         <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-400 to-amber-500 rounded-full mb-4 shadow-lg">
           <UIcon name="i-heroicons-calendar-days" class="w-8 h-8 text-white" />
         </div>
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">週計劃管理</h1>
-        <p class="text-gray-600">學習活動週排程與目標規劃</p>
+        <h1 class="text-3xl font-bold text-gray-800">週計劃管理</h1>
       </div>
 
       <!-- 步驟指示器 -->
-      <div class="mb-8">
-        <div class="flex items-center justify-center space-x-4">
-          <div v-for="step in 2" :key="step" class="flex items-center">
-            <div class="flex items-center">
-              <div 
-                :class="[
-                  'w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all',
-                  currentStep >= step - 1 ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-500'
-                ]"
-              >
-                {{ step }}
-              </div>
-              <span 
-                :class="[
-                  'ml-2 font-medium',
-                  currentStep >= step - 1 ? 'text-orange-600' : 'text-gray-400'
-                ]"
-              >
-                {{ ['基本資訊', '週計劃排程'][step - 1] }}
-              </span>
-            </div>
-            <div v-if="step < 2" class="w-16 h-1 mx-4" :class="currentStep >= step ? 'bg-orange-600' : 'bg-gray-200'"></div>
-          </div>
-        </div>
-      </div>
+      <StepIndicator
+        :steps="['基本資訊', '週計劃排程']"
+        :current-step="currentStep"
+        color="orange"
+      />
 
       <!-- 步驟 1: 基本資訊 -->
       <UCard v-if="currentStep === 0" class="mb-6">
@@ -231,10 +210,14 @@
           <FormFooter
             :show-prev="true"
             :show-next="false"
+            :show-export="true"
             :loading="saving"
+            :export-loading="exporting"
+            size="lg"
+            hide-cancel
             @prev="currentStep = 0"
-            @cancel="router.push('/weekly-plan-list')"
             @save="saveWeeklyPlan"
+            @export="exportWeeklyPlan"
           />
         </template>
       </UCard>
@@ -258,6 +241,7 @@ const { saveStep, restoreStep, clearStep, editingId } = useFormSession('weekly-p
 
 const currentStep = ref(0)
 const saving = ref(false)
+const exporting = ref(false)
 const detailedGoals = ref<any[]>([])
 const detailedGoalOptions = ref<any[]>([])
 const studentOptions = ref<Array<{ label: string; value: string }>>([])
@@ -437,20 +421,12 @@ const previousStep = () => {
 
 // 儲存週計劃
 const saveWeeklyPlan = async () => {
-  if (!user.value) {
-    useToast().add({
-      title: '請先登入',
-      color: 'red'
-    })
-    return
-  }
-
   saving.value = true
 
   try {
     const db = getDb()
     const weeklyPlanData = {
-      userId: user.value.uid,
+      userId: user.value!.uid,
       unitTheme: formData.unitTheme,
       studentName: formData.studentName,
       startDate: formData.startDate,
@@ -493,6 +469,54 @@ const saveWeeklyPlan = async () => {
     })
   } finally {
     saving.value = false
+  }
+}
+
+// 匯出週計劃
+const exportWeeklyPlan = async () => {
+  exporting.value = true
+
+  try {
+    const db = getDb()
+    const weeklyPlanData = {
+      userId: user.value!.uid,
+      unitTheme: formData.unitTheme,
+      studentName: formData.studentName,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      executor: formData.executor,
+      dates: formData.dates,
+      schedule: formData.schedule,
+      randomTeaching: formData.randomTeaching,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    if (editingId.value) {
+      const docRef = doc(db, 'weekly_plans', editingId.value)
+      await updateDoc(docRef, {
+        ...weeklyPlanData,
+        updatedAt: new Date().toISOString()
+      })
+    } else {
+      await addDoc(collection(db, 'weekly_plans'), weeklyPlanData)
+    }
+
+    clearStep()
+    // TODO: 實作 Word 匯出功能
+    useToast().add({
+      title: '週計劃已儲存！Word 匯出功能開發中...',
+      color: 'green'
+    })
+    router.push('/weekly-plan-list')
+  } catch (error) {
+    console.error('匯出週計劃失敗：', error)
+    useToast().add({
+      title: '匯出週計劃失敗',
+      color: 'red'
+    })
+  } finally {
+    exporting.value = false
   }
 }
 
