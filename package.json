@@ -9,6 +9,14 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild", 
+      "@parcel/watcher", 
+      "protobufjs", 
+      "@firebase/util"
+    ]
+  },
   "dependencies": {
     "@nuxt/ui": "^2.22.3",
     "docxtemplater": "^3.67.5",
