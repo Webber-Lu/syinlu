@@ -113,11 +113,13 @@
 </template>
 
 <script setup lang="ts">
-import { collection, query, where, getDocs, deleteDoc, doc, getFirestore } from 'firebase/firestore'
+import { collection, query, where, getDocs, deleteDoc, doc, getDoc, getFirestore } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 import { useAuth } from '~/composables/useAuth'
+import { useEvaluationWordExport } from '~/composables/useEvaluationWordExport'
 
 const { user } = useAuth()
+const { generateEvaluationWord } = useEvaluationWordExport()
 
 // 取得 Firestore 實例
 const getDb = () => {
@@ -204,8 +206,32 @@ const editForm = (formId: string) => {
 
 // 匯出評鑑記錄
 const exportForm = async (formId: string) => {
-  // TODO: 實作 Word 匯出功能
-  alert('Word 匯出功能開發中...')
+  try {
+    const db = getDb()
+    const docRef = doc(db, 'evaluation_forms', formId)
+    const docSnap = await getDoc(docRef)
+
+    if (docSnap.exists()) {
+      const data = docSnap.data()
+      const formData = {
+        studentName: data.studentName || '',
+        sessionNumber: data.sessionNumber || '',
+        startDate: data.startDate || '',
+        endDate: data.endDate || '',
+        designer: data.designer || '',
+        executor: data.executor || '',
+        domains: data.domains || []
+      }
+
+      await generateEvaluationWord(formData)
+      alert('匯出成功！')
+    } else {
+      alert('找不到該評鑑記錄')
+    }
+  } catch (error) {
+    console.error('匯出失敗:', error)
+    alert(`匯出失敗：${error instanceof Error ? error.message : '請稍後再試'}`)
+  }
 }
 
 // 確認刪除
