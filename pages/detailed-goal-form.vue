@@ -155,12 +155,12 @@
                   <div v-if="shortTermGoal.detailedGoals && shortTermGoal.detailedGoals.length > 0" class="mt-4 space-y-4 pl-4 border-l-2 border-gray-200">
                     <div v-for="(detailedGoal, detailedIndex) in shortTermGoal.detailedGoals" :key="detailedIndex" class="p-4 bg-purple-50 rounded-lg border border-purple-200">
                       <div class="flex items-start justify-between mb-3">
-                        <UBadge color="purple" size="sm">細目標 {{ detailedIndex + 1 }}</UBadge>
+                        <UBadge color="purple" size="sm">細目標 {{ Number(detailedIndex) + 1 }}</UBadge>
                         <UButton 
                           color="red" 
                           variant="ghost" 
                           size="xs"
-                          @click="removeDetailedGoal(domainIndex, shortTermGoal, detailedIndex)"
+                          @click="removeDetailedGoal(domainIndex, shortTermGoal, Number(detailedIndex))"
                         >
                           <UIcon name="i-heroicons-trash" />
                         </UButton>

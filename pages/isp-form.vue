@@ -797,8 +797,8 @@ const saveDraft = async (showAlert = true) => {
     
     const draftData: any = {
       ...formData.value,
-      userId: user.value.uid,
-      userEmail: user.value.email,
+      userId: user.value!.uid,
+      userEmail: user.value!.email,
       selectedDomains: selectedDomains.value,
       currentStep: currentStep.value,
       updatedAt: serverTimestamp()
@@ -980,9 +980,9 @@ const exportCurrentForm = async () => {
     // 先儲存到 Firestore
     const submissionData: any = {
       ...formData.value,
-      userId: user.value.uid,
-      userEmail: user.value.email,
-      userName: user.value.displayName || user.value.email,
+      userId: user.value!.uid,
+      userEmail: user.value!.email,
+      userName: user.value!.displayName || user.value!.email,
       selectedDomains: selectedDomains.value,
       submittedAt: serverTimestamp(),
       updatedAt: serverTimestamp()
@@ -1049,7 +1049,7 @@ const loadForm = async (formId?: string) => {
     if (!isNewForm.value) {
       const q = query(
         collection(db, 'isp_forms'),
-        where('userId', '==', user.value.uid)
+        where('userId', '==', user.value!.uid)
       )
       
       const querySnapshot = await getDocs(q)

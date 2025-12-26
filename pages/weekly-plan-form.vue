@@ -137,8 +137,12 @@
                       <div class="text-sm text-gray-600 mt-1">幼兒來園</div>
                     </div>
                   </td>
-                  <td colspan="4" class="border border-gray-300 px-4 py-2 text-center bg-gray-100">
-                    口語提示下，收拾書包的物品到指定物品籃中。
+                  <td v-for="day in ['day1', 'day2', 'day3', 'day4']" :key="day" class="border border-gray-300 px-2 py-2">
+                    <UInput
+                      v-model="formData.fixedSchedule['08:30-09:00'][day]"
+                      placeholder="輸入活動內容"
+                      size="sm"
+                    />
                   </td>
                 </tr>
 
@@ -150,8 +154,12 @@
                       <div class="text-sm text-gray-600 mt-1">早會律動</div>
                     </div>
                   </td>
-                  <td colspan="4" class="border border-gray-300 px-4 py-2 text-center bg-gray-100">
-                    能跟著音樂模仿簡單動作。
+                  <td v-for="day in ['day1', 'day2', 'day3', 'day4']" :key="day" class="border border-gray-300 px-2 py-2">
+                    <UInput
+                      v-model="formData.fixedSchedule['09:00-09:10'][day]"
+                      placeholder="輸入活動內容"
+                      size="sm"
+                    />
                   </td>
                 </tr>
 
@@ -221,6 +229,73 @@
           />
         </template>
       </UCard>
+
+      <!-- 評分說明 - 懸停顯示 -->
+      <div class="mt-6 flex justify-center">
+        <UPopover mode="hover" :popper="{ placement: 'top' }">
+          <UButton 
+            color="gray" 
+            variant="soft" 
+            size="lg"
+            icon="i-heroicons-information-circle"
+          >
+            評分標準說明
+          </UButton>
+
+          <template #panel>
+            <div class="p-6 bg-white rounded-lg shadow-xl max-w-4xl">
+              <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                <UIcon name="i-heroicons-information-circle" class="mr-2 text-orange-600" />
+                評分標準說明
+              </h3>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                <div>
+                  <h4 class="font-bold text-blue-700 mb-2">A - 達成度</h4>
+                  <ul class="space-y-1 text-gray-600">
+                    <li>0: 0%</li>
+                    <li>1: 達成25%</li>
+                    <li>2: 達成50%</li>
+                    <li>3: 達成75%</li>
+                    <li>4: 達成100%</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="font-bold text-green-700 mb-2">B - 量</h4>
+                  <ul class="space-y-1 text-gray-600">
+                    <li>0: 0</li>
+                    <li>1: 完成1/4</li>
+                    <li>2: 完成2/4</li>
+                    <li>3: 完成3/4</li>
+                    <li>4: 全部完成</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="font-bold text-orange-700 mb-2">C - 協助方式</h4>
+                  <ul class="space-y-1 text-gray-600">
+                    <li>0: 完全協助</li>
+                    <li>1: 肢體協助</li>
+                    <li>2: 手勢指示</li>
+                    <li>3: 口頭提示</li>
+                    <li>4: 獨立完成</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 class="font-bold text-purple-700 mb-2">D - 反應程度</h4>
+                  <ul class="space-y-1 text-gray-600">
+                    <li>0: 無反應</li>
+                    <li>1: 1/4正確</li>
+                    <li>2: 2/4正確</li>
+                    <li>3: 3/4正確</li>
+                    <li>4: 全部正確</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </template>
+        </UPopover>
+      </div>
+
     </div>
   </div>
 </template>
@@ -255,8 +330,7 @@ const weekDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday']
 
 const fixedTimeSlots = [
   { time: '08:30-09:00', label: '幼兒來園' },
-  { time: '09:00-09:10', label: '早會律動' },
-  { time: '09:10-09:20', label: '轉換時間' }
+  { time: '09:00-09:10', label: '早會律動' }
 ]
 
 const editableTimeSlots = [
@@ -287,6 +361,20 @@ const initSchedule = () => {
   return schedule
 }
 
+// 初始化固定時段排程物件
+const initFixedSchedule = () => {
+  const schedule: any = {}
+  fixedTimeSlots.forEach(slot => {
+    schedule[slot.time] = {
+      day1: '',
+      day2: '',
+      day3: '',
+      day4: ''
+    }
+  })
+  return schedule
+}
+
 const formData = reactive({
   unitTheme: '',
   studentName: '',
@@ -299,6 +387,7 @@ const formData = reactive({
     day3: { start: '', end: '' },
     day4: { start: '', end: '' }
   },
+  fixedSchedule: initFixedSchedule(),
   schedule: initSchedule(),
   randomTeaching: {
     day1: '',
