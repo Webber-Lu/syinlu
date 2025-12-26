@@ -115,12 +115,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { collection, getDocs, deleteDoc, doc, query, where, getFirestore } from 'firebase/firestore'
+import { collection, getDocs, deleteDoc, doc, query, where, getDoc, getFirestore } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 import { useAuth } from '~/composables/useAuth'
+import { useMonthlyStatusWordExport, type MonthlyStatusFormData } from '~/composables/useMonthlyStatusWordExport'
 
 const { user } = useAuth()
 const router = useRouter()
+const { generateMonthlyStatusWord } = useMonthlyStatusWordExport()
 
 // 取得 Firestore 實例
 const getDb = () => {
@@ -195,8 +197,25 @@ const editItem = (id: string) => {
 
 // 匯出月況
 const exportItem = async (id: string) => {
-  // TODO: 實作月況匯出功能
-  alert('月況匯出功能開發中')
+  try {
+    // 載入月況表單資料
+    const db = getDb()
+    const docRef = doc(db, 'monthly_status', id)
+    const docSnap = await getDoc(docRef)
+    
+    if (!docSnap.exists()) {
+      alert('找不到該月況記錄')
+      return
+    }
+    
+    const data = docSnap.data() as MonthlyStatusFormData
+    
+    // 生成 Word 文件
+    await generateMonthlyStatusWord(data)
+  } catch (error: any) {
+    console.error('匯出失敗:', error)
+    alert('匯出失敗: ' + (error.message || '未知錯誤'))
+  }
 }
 
 // 確認刪除

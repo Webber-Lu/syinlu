@@ -267,10 +267,16 @@
               <UIcon name="i-heroicons-arrow-left" class="mr-2" />
               上一步
             </UButton>
-            <UButton color="green" size="lg" @click="saveForm" :loading="isSaving">
-              <UIcon name="i-heroicons-document-check" class="mr-2" />
-              儲存
-            </UButton>
+            <div class="flex space-x-3">
+              <UButton color="blue" size="lg" @click="exportWord" :loading="isExporting">
+                <UIcon name="i-heroicons-arrow-down-tray" class="mr-2" />
+                匯出 Word
+              </UButton>
+              <UButton color="green" size="lg" @click="saveForm" :loading="isSaving">
+                <UIcon name="i-heroicons-document-check" class="mr-2" />
+                儲存
+              </UButton>
+            </div>
           </div>
         </template>
       </UCard>
@@ -285,16 +291,19 @@ import { getApp } from 'firebase/app'
 import { useAuth } from '~/composables/useAuth'
 import { useFirestore } from '~/composables/useFirestore'
 import { useFormSession } from '~/composables/useFormSession'
+import { useDetailedGoalWordExport } from '~/composables/useDetailedGoalWordExport'
 
 const { user } = useAuth()
 const { getDb } = useFirestore()
 const route = useRoute()
 const { saveStep, restoreStep, clearStep, editingId } = useFormSession('detailed-goal')
+const { generateDetailedGoalWord } = useDetailedGoalWordExport()
 
 // 狀態管理
 const currentStep = ref(0)
 const isImporting = ref(false)
 const isSaving = ref(false)
+const isExporting = ref(false)
 const hasImported = ref(false)
 const editingFormId = computed(() => editingId.value)
 
@@ -535,6 +544,20 @@ const saveForm = async () => {
     alert('儲存失敗，請稍後再試')
   } finally {
     isSaving.value = false
+  }
+}
+
+// 匯出Word
+const exportWord = async () => {
+  try {
+    isExporting.value = true
+    await generateDetailedGoalWord(formData.value)
+    alert('Word 文件已成功匯出！')
+  } catch (error: any) {
+    console.error('匯出失敗:', error)
+    alert(error.message || '匯出失敗，請稍後再試')
+  } finally {
+    isExporting.value = false
   }
 }
 
