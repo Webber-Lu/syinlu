@@ -267,11 +267,13 @@ import { getApp } from 'firebase/app'
 import { useAuth } from '~/composables/useAuth'
 import { useFirestore } from '~/composables/useFirestore'
 import { useFormSession } from '~/composables/useFormSession'
+import { useDetailedGoalWordExport } from '~/composables/useDetailedGoalWordExport'
 
 const { user } = useAuth()
 const { getDb } = useFirestore()
 const route = useRoute()
 const { saveStep, restoreStep, clearStep, editingId } = useFormSession('detailed-goal')
+const { generateDetailedGoalWord } = useDetailedGoalWordExport()
 
 // 狀態管理
 const currentStep = ref(0)

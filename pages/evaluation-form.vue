@@ -567,11 +567,13 @@ import { collection, addDoc, updateDoc, doc, getDoc, getDocs, query, where, serv
 import { useAuth } from '~/composables/useAuth'
 import { useFirestore } from '~/composables/useFirestore'
 import { useFormSession } from '~/composables/useFormSession'
+import { useEvaluationWordExport } from '~/composables/useEvaluationWordExport'
 
 const { user } = useAuth()
 const { getDb } = useFirestore()
 const route = useRoute()
 const { saveStep, restoreStep, clearStep, editingId } = useFormSession('evaluation')
+const { generateEvaluationWord } = useEvaluationWordExport()
 
 // 狀態管理
 const isViewMode = ref(!!route.query.view)
@@ -900,13 +902,15 @@ const exportForm = async () => {
       await addDoc(collection(db, 'evaluation_forms'), formDataToSave)
     }
 
+    // 匯出 Word 文件
+    await generateEvaluationWord(formData.value)
+
     clearStep()
-    // TODO: 實作 Word 匯出功能
-    alert('評鑑記錄已儲存！Word 匯出功能開發中...')
+    alert('評鑑記錄已儲存並匯出成功！')
     navigateTo('/evaluation-list')
   } catch (error) {
     console.error('匯出失敗:', error)
-    alert('匯出失敗，請稍後再試')
+    alert(`匯出失敗：${error instanceof Error ? error.message : '請稍後再試'}`)
   } finally {
     isExporting.value = false
   }

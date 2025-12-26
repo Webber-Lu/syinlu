@@ -64,11 +64,13 @@
 </template>
 
 <script setup lang="ts">
-import { collection, query, where, getDocs, deleteDoc, doc, orderBy, getFirestore } from 'firebase/firestore'
+import { collection, query, where, getDocs, deleteDoc, doc, orderBy, getFirestore, getDoc } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 import { useAuth } from '~/composables/useAuth'
+import { useDetailedGoalWordExport } from '~/composables/useDetailedGoalWordExport'
 
 const { user } = useAuth()
+const { generateDetailedGoalWord } = useDetailedGoalWordExport()
 
 // 取得 Firestore 實例
 const getDb = () => {
@@ -118,11 +120,32 @@ const editForm = (id: string) => {
 }
 
 // 匯出表單
-const exportForm = (id: string) => {
-  useToast().add({
-    title: '匯出功能開發中',
-    color: 'blue'
-  })
+const exportForm = async (id: string) => {
+  try {
+    const db = getDb()
+    const docRef = doc(db, 'detailed_goal_forms', id)
+    const docSnap = await getDoc(docRef)
+
+    if (docSnap.exists()) {
+      const formData = docSnap.data()
+      await generateDetailedGoalWord(formData as any)
+      useToast().add({
+        title: 'Word 文件已成功匯出',
+        color: 'green'
+      })
+    } else {
+      useToast().add({
+        title: '找不到該表單',
+        color: 'red'
+      })
+    }
+  } catch (error: any) {
+    console.error('匯出失敗:', error)
+    useToast().add({
+      title: error.message || '匯出失敗',
+      color: 'red'
+    })
+  }
 }
 
 // 刪除表單
