@@ -546,9 +546,11 @@ const exportForm = async () => {
       await addDoc(collection(db, 'detailed_goal_forms'), formDataToSave)
     }
 
+    // 生成並下載 Word 文件
+    await generateDetailedGoalWord(formData.value)
+
     clearStep()
-    // TODO: 實作 Word 匯出功能
-    alert('細目標已儲存！Word 匯出功能開發中...')
+    alert('細目標已儲存並成功匯出！')
     navigateTo('/detailed-goal-list')
   } catch (error) {
     console.error('匯出失敗:', error)

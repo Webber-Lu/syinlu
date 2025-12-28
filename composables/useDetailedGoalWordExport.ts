@@ -41,6 +41,7 @@ type Domain = {
   domainName: string
   domainId: string
   goals: Goal[]
+  discussionNotes?: string
 }
 
 export type DetailedFormData = {
@@ -48,7 +49,6 @@ export type DetailedFormData = {
   sessionNumber: string | number
   startDate: string
   endDate: string
-  discussionNotes: string
   domains: Domain[]
 }
 
@@ -188,7 +188,7 @@ export const useDetailedGoalWordExport = () => {
           longTermCell: `${ltNo}. ${grp.longTerm}`,
           evaluationMethodCell,
           longDateRangeCell,
-          discussionNotesCell: !notesShown ? safeStr(formData.discussionNotes) : ''
+          discussionNotesCell: !notesShown ? safeStr(d.discussionNotes) : ''
         })
 
         domainShownInLong = true
