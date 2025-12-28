@@ -230,15 +230,16 @@
           </div>
         </template>
 
-        <div class="space-y-4">
-          <UFormGroup label="討論過程記錄">
+        <div class="space-y-6">
+          <div v-for="(domain, domainIndex) in formData.domains" :key="domainIndex" class="p-6 bg-gray-50 rounded-lg">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">{{ domain.domainName }}</h3>
             <UTextarea
-              v-model="formData.discussionNotes"
-              :rows="10"
+              v-model="domain.discussionNotes"
+              :rows="6"
               placeholder="請輸入討論過程、決策依據、調整說明等..."
               size="lg"
             />
-          </UFormGroup>
+          </div>
         </div>
 
         <template #footer>
@@ -292,10 +293,10 @@ const formData = ref({
   sessionNumber: '' as string | number,
   startDate: '',
   endDate: '',
-  discussionNotes: '',
   domains: [] as Array<{
     domainName: string
     domainId: string
+    discussionNotes: string
     goals: Array<{
       longTermGoal: string
       shortTermGoal: string
@@ -400,6 +401,7 @@ const importFromIsp = async () => {
           formData.value.domains.push({
             domainName: domainNameMap[domainId] || domainId,
             domainId: domainId,
+            discussionNotes: '',
             goals: goals
           })
         }
@@ -574,7 +576,6 @@ onMounted(async () => {
           sessionNumber: data.sessionNumber || '',
           startDate: data.startDate || '',
           endDate: data.endDate || '',
-          discussionNotes: data.discussionNotes || '',
           domains: data.domains || []
         }
         hasImported.value = true
