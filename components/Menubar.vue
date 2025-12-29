@@ -1,12 +1,12 @@
 <template>
   <div class="bg-white/90 backdrop-blur-md shadow-lg border-b border-white/50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between items-center h-16">
+      <div class="flex justify-between items-center h-12">
         <!-- Logo 區 -->
         <div class="flex items-center space-x-6">
           <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
-              <span class="text-2xl">🌿</span>
+            <div class="w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
+              <span class="text-lg">🌿</span>
             </div>
             <span class="text-xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">心路基金會</span>
           </div>

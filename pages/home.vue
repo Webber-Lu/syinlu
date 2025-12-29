@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-green-400 via-emerald-400 to-teal-500">
+  <div class="min-h-screen bg-gradient-to-br from-orange-50 via-stone-100 to-amber-50">
     <!-- 載入中狀態 -->
     <div v-if="loading" class="min-h-screen flex flex-col items-center justify-center">
       <div class="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -19,12 +19,45 @@
       <Menubar>
         <template #user-section>
           <div class="flex items-center space-x-4">
-            <UAvatar 
-              :text="getUserInitial()" 
-              size="sm"
-              :ui="{ background: 'bg-gradient-to-br from-green-400 to-emerald-500' }"
-            />
-            <span class="text-gray-700 font-medium hidden sm:inline">{{ user.displayName || user.email }}</span>
+            <div class="flex items-center space-x-2">
+              <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div v-if="!isEditingName" class="flex items-center space-x-2">
+                <span class="text-gray-700 font-medium hidden sm:inline">{{ user.displayName || user.email }}</span>
+                <UButton
+                  size="xs"
+                  variant="ghost"
+                  color="gray"
+                  icon="i-heroicons-pencil"
+                  @click="startEditName"
+                  class="hidden sm:inline-flex"
+                />
+              </div>
+              <div v-else class="flex items-center space-x-2">
+                <UInput
+                  v-model="editingName"
+                  size="sm"
+                  placeholder="輸入名稱"
+                  class="w-32"
+                  @keyup.enter="saveDisplayName"
+                  @keyup.esc="cancelEditName"
+                />
+                <UButton
+                  size="xs"
+                  color="green"
+                  icon="i-heroicons-check"
+                  @click="saveDisplayName"
+                  :loading="isSavingName"
+                />
+                <UButton
+                  size="xs"
+                  color="gray"
+                  variant="ghost"
+                  icon="i-heroicons-x-mark"
+                  @click="cancelEditName"
+                  :disabled="isSavingName"
+                />
+              </div>
+            </div>
             <UButton 
               color="red" 
               variant="soft" 
@@ -41,8 +74,8 @@
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- 歡迎區 -->
         <div class="mb-8 text-center">
-          <h1 class="text-4xl font-bold text-white mb-2 drop-shadow-lg">歡迎回來！</h1>
-          <p class="text-white/90 text-lg">選擇您所需要的表單</p>
+          <h1 class="text-4xl font-bold text-gray-800 mb-2">歡迎回來！</h1>
+          <p class="text-gray-600 text-lg">選擇您所需要的表單</p>
         </div>
 
         <!-- 快速功能區 -->
@@ -141,8 +174,11 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
 
-const { user, loading, initAuth, logout } = useAuth()
+const { user, loading, initAuth, logout, updateDisplayName } = useAuth()
 const isLoading = ref(false)
+const isEditingName = ref(false)
+const editingName = ref('')
+const isSavingName = ref(false)
 
 let unsubscribe: (() => void) | null = null
 
@@ -174,6 +210,34 @@ const handleLogout = async () => {
     navigateTo('/')
   } finally {
     isLoading.value = false
+  }
+}
+
+const startEditName = () => {
+  editingName.value = user.value?.displayName || ''
+  isEditingName.value = true
+}
+
+const cancelEditName = () => {
+  isEditingName.value = false
+  editingName.value = ''
+}
+
+const saveDisplayName = async () => {
+  if (!editingName.value.trim()) {
+    cancelEditName()
+    return
+  }
+  
+  isSavingName.value = true
+  try {
+    await updateDisplayName(editingName.value.trim())
+    isEditingName.value = false
+  } catch (error) {
+    console.error('更新名稱失敗:', error)
+    alert('更新名稱失敗，請稍後再試')
+  } finally {
+    isSavingName.value = false
   }
 }
 </script>
